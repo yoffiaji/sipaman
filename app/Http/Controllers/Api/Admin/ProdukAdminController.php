@@ -1,0 +1,427 @@
+<?php
+
+namespace App\Http\Controllers\Api\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Imports\PirtCommitmentStatusImport;
+use App\Imports\ProdukImport;
+use App\Models\GambarProduk;
+use App\Models\ImportLog;
+use App\Models\Produk;
+use App\Models\User;
+use App\Models\VerifikasiProduk;
+use App\Traits\LogsAuditTrail;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+
+/**
+ * ProdukAdminController
+ * ----------------------
+ * Akses: admin, super_admin
+ * Fitur:
+ *   - CRUD produk (index, show, store, update, destroy)
+ *   - Import Excel
+ *   - Verifikasi & reject produk
+ *   - Upload & hapus gambar (hanya produk terverifikasi)
+ */
+class ProdukAdminController extends Controller
+{
+    use LogsAuditTrail;
+
+    // ── GET /api/admin/produk ─────────────────────────────────
+    public function index(Request $request): JsonResponse
+    {
+        $query = Produk::with(['kecamatan', 'jenisBarang', 'gambarUtama', 'verifikasi.verifikator', 'commitmentStatus']);
+
+        if ($s = $request->query('search')) {
+            $query->search($s);
+        }
+
+        if ($request->has('is_verified')) {
+            $query->where('is_verified', filter_var($request->is_verified, FILTER_VALIDATE_BOOLEAN));
+        }
+
+        if ($kec = $request->query('kecamatan_id')) {
+            $query->where('kecamatan_id', $kec);
+        }
+
+        if ($jb = $request->query('jenis_barang_id')) {
+            $query->where('jenis_barang_id', $jb);
+        }
+
+        return response()->json(
+            $query->orderByDesc('created_at')->paginate($request->query('per_page', 20))
+        );
+    }
+
+    // ── GET /api/admin/produk/{produk} ────────────────────────
+    public function show(Produk $produk): JsonResponse
+    {
+        $produk->load(['kecamatan', 'jenisBarang', 'gambarProduks', 'verifikasi.verifikator', 'commitmentStatus']);
+
+        return response()->json(['data' => $produk]);
+    }
+
+    // ── POST /api/admin/produk ────────────────────────────────
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'user_id' => 'nullable|integer|exists:users,id',
+            'no_sppirt' => 'required|string|max:100|unique:produks,no_sppirt',
+            'nama_branding' => 'required|string|max:150',
+            'kategori_pangan' => 'nullable|string|max:150',
+            'jenis_pangan' => 'nullable|string|max:150',
+            'kemasan' => 'nullable|string|max:150',
+            'cara_penyimpanan' => 'nullable|string|max:150',
+            'wilayah' => 'nullable|string|max:150',
+            'kecamatan_id' => 'nullable|integer|exists:kecamatans,id',
+            'jenis_barang_id' => 'nullable|integer|exists:jenis_barangs,id',
+            'nama_pelaku_usaha' => 'required|string|max:150',
+            'alamat' => 'required|string',
+            'nib' => 'nullable|string|max:50',
+            'no_hp' => 'nullable|string|max:20',
+            'nama_toko' => 'nullable|string|max:150',
+            'alamat_toko' => 'nullable|string|max:1000',
+            'harga' => 'nullable|integer|min:0|max:1000000000',
+            'deskripsi' => 'nullable|string|max:2000',
+            'tanggal_pengajuan' => 'nullable|date',
+            'tanggal_verifikasi' => 'nullable|date',
+            'masa_berlaku_pirt' => 'nullable|date',
+            'status_oss' => 'nullable|string|max:100',
+            'is_verified' => 'nullable|boolean',
+        ]);
+
+        if (! $this->isPelakuUsahaUser($data['user_id'] ?? null)) {
+            return response()->json([
+                'message' => 'Produk hanya boleh dihubungkan ke akun dengan role user/pelaku usaha.',
+            ], 422);
+        }
+
+        $produk = Produk::create($data);
+
+        $this->logAudit('create', 'produks', $produk->id, null, $data);
+
+        return response()->json([
+            'message' => 'Produk berhasil ditambahkan.',
+            'data' => $produk->load(['kecamatan', 'jenisBarang']),
+        ], 201);
+    }
+
+    // ── PUT /api/admin/produk/{produk} ────────────────────────
+    public function update(Request $request, Produk $produk): JsonResponse
+    {
+        $data = $request->validate([
+            'user_id' => 'sometimes|nullable|integer|exists:users,id',
+            'no_sppirt' => "sometimes|string|max:100|unique:produks,no_sppirt,{$produk->id}",
+            'nama_branding' => 'sometimes|string|max:150',
+            'kategori_pangan' => 'nullable|string|max:150',
+            'jenis_pangan' => 'nullable|string|max:150',
+            'kemasan' => 'nullable|string|max:150',
+            'cara_penyimpanan' => 'nullable|string|max:150',
+            'wilayah' => 'nullable|string|max:150',
+            'kecamatan_id' => 'sometimes|nullable|integer|exists:kecamatans,id',
+            'jenis_barang_id' => 'sometimes|nullable|integer|exists:jenis_barangs,id',
+            'nama_pelaku_usaha' => 'sometimes|string|max:150',
+            'alamat' => 'sometimes|string',
+            'nib' => 'nullable|string|max:50',
+            'no_hp' => 'nullable|string|max:20',
+            'nama_toko' => 'nullable|string|max:150',
+            'alamat_toko' => 'nullable|string|max:1000',
+            'harga' => 'nullable|integer|min:0|max:1000000000',
+            'deskripsi' => 'nullable|string|max:2000',
+            'tanggal_pengajuan' => 'nullable|date',
+            'tanggal_verifikasi' => 'nullable|date',
+            'masa_berlaku_pirt' => 'nullable|date',
+            'status_oss' => 'nullable|string|max:100',
+            'is_verified' => 'nullable|boolean',
+        ]);
+
+        if (array_key_exists('user_id', $data) && ! $this->isPelakuUsahaUser($data['user_id'])) {
+            return response()->json([
+                'message' => 'Produk hanya boleh dihubungkan ke akun dengan role user/pelaku usaha.',
+            ], 422);
+        }
+
+        $sebelum = $produk->toArray();
+        $produk->update($data);
+        $this->logAudit('update', 'produks', $produk->id, $sebelum, $produk->fresh()->toArray());
+
+        return response()->json([
+            'message' => 'Produk berhasil diperbarui.',
+            'data' => $produk->fresh()->load(['kecamatan', 'jenisBarang']),
+        ]);
+    }
+
+    // ── DELETE /api/admin/produk/{produk} ─────────────────────
+    public function destroy(Produk $produk): JsonResponse
+    {
+        $sebelum = $produk->toArray();
+
+        // Hapus file gambar dari storage
+        foreach ($produk->gambarProduks as $g) {
+            Storage::disk('public')->delete($g->url_gambar);
+        }
+
+        $produk->delete();
+        $this->logAudit('delete', 'produks', $produk->id, $sebelum, null);
+
+        return response()->json(['message' => 'Produk berhasil dihapus.']);
+    }
+
+    // ── POST /api/admin/produk/import ─────────────────────────
+    public function import(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+            'tipe_file' => 'nullable|in:rekap_pirt,status_komitmen',
+        ]);
+
+        $tipeFile = $request->input('tipe_file', 'rekap_pirt');
+
+        return $this->runImport($request, $tipeFile);
+    }
+
+    // ── POST /api/admin/produk/import/rekap-pirt ──────────────
+    public function importRekapPirt(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        return $this->runImport($request, 'rekap_pirt');
+    }
+
+    // ── POST /api/admin/produk/import/status-komitmen ─────────
+    public function importStatusKomitmen(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        return $this->runImport($request, 'status_komitmen');
+    }
+
+    private function runImport(Request $request, string $tipeFile): JsonResponse
+    {
+        $import = $tipeFile === 'status_komitmen'
+            ? new PirtCommitmentStatusImport
+            : new ProdukImport;
+
+        DB::beginTransaction();
+        try {
+            Excel::import($import, $request->file('file'));
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Import gagal: '.$e->getMessage(),
+            ], 422);
+        }
+
+        $berhasil = $import->getBerhasil();
+        $gagal = $import->getGagal();
+
+        ImportLog::create([
+            'user_id' => auth()->id(),
+            'nama_file' => $request->file('file')->getClientOriginalName(),
+            'jumlah_baris' => $berhasil + $gagal,
+            'jumlah_berhasil' => $berhasil,
+            'jumlah_gagal' => $gagal,
+            'keterangan' => $gagal > 0
+                ? "Tipe {$tipeFile}: {$gagal} baris gagal / tidak valid."
+                : "Tipe {$tipeFile}: semua baris berhasil diimpor.",
+        ]);
+
+        $this->logAudit('import', $tipeFile === 'status_komitmen' ? 'pirt_commitment_statuses' : 'produks', null, null, [
+            'tipe_file' => $tipeFile,
+            'berhasil' => $berhasil,
+            'gagal' => $gagal,
+        ]);
+
+        return response()->json([
+            'message' => "Import {$tipeFile} selesai. Berhasil: {$berhasil}, Gagal: {$gagal}.",
+            'tipe_file' => $tipeFile,
+            'berhasil' => $berhasil,
+            'gagal' => $gagal,
+            'failures' => $import->getFailureDetails(),
+        ]);
+    }
+
+    // ── POST /api/admin/produk/{produk}/verify ─────────────────
+    public function verify(Request $request, Produk $produk): JsonResponse
+    {
+        $data = $request->validate([
+            'verifikasi_produk' => 'required|boolean',
+            'verifikasi_label' => 'required|boolean',
+            'status_komitmen' => 'required|in:ya,tidak',
+            'tanggal_verifikasi' => 'nullable|date',
+            'masa_berlaku_pirt' => 'nullable|date',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            VerifikasiProduk::updateOrCreate(
+                ['produk_id' => $produk->id],
+                [
+                    'verifikasi_produk' => $data['verifikasi_produk'],
+                    'verifikasi_label' => $data['verifikasi_label'],
+                    'status_komitmen' => $data['status_komitmen'],
+                    'user_verifikator_id' => auth()->id(),
+                ]
+            );
+
+            // Produk dianggap verified jika KEDUA verifikasi lulus
+            $isVerified = $data['verifikasi_produk'] && $data['verifikasi_label'];
+            $tanggalVerifikasi = $data['tanggal_verifikasi'] ?? now()->toDateString();
+            $masaBerlaku = $data['masa_berlaku_pirt']
+                ?? Carbon::parse($tanggalVerifikasi)->addYears(5)->toDateString();
+
+            $produk->update([
+                'is_verified' => $isVerified,
+                'tanggal_verifikasi' => $isVerified ? $tanggalVerifikasi : null,
+                'masa_berlaku_pirt' => $isVerified ? $masaBerlaku : null,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json(['message' => 'Verifikasi gagal: '.$e->getMessage()], 500);
+        }
+
+        $this->logAudit('verify', 'produks', $produk->id, null, [
+            'is_verified' => $isVerified,
+            ...$data,
+        ]);
+
+        return response()->json([
+            'message' => $isVerified
+                ? 'Produk berhasil diverifikasi.'
+                : 'Data verifikasi disimpan (produk belum sepenuhnya lulus).',
+            'data' => $produk->fresh()->load(['verifikasi.verifikator']),
+        ]);
+    }
+
+    // ── POST /api/admin/produk/{produk}/reject ─────────────────
+    public function reject(Request $request, Produk $produk): JsonResponse
+    {
+        $request->validate([
+            'alasan' => 'nullable|string|max:500',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $produk->update([
+                'is_verified' => false,
+                'tanggal_verifikasi' => null,
+                'masa_berlaku_pirt' => null,
+            ]);
+            VerifikasiProduk::updateOrCreate(
+                ['produk_id' => $produk->id],
+                [
+                    'user_verifikator_id' => auth()->id(),
+                    'verifikasi_produk' => false,
+                    'verifikasi_label' => false,
+                    'status_komitmen' => 'tidak',
+                ]
+            );
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json(['message' => 'Reject gagal: '.$e->getMessage()], 500);
+        }
+
+        $this->logAudit('verify', 'produks', $produk->id, null, [
+            'action' => 'rejected',
+            'alasan' => $request->alasan,
+        ]);
+
+        return response()->json([
+            'message' => 'Produk ditolak dan status verifikasi direset.',
+        ]);
+    }
+
+    // ── POST /api/admin/produk/{produk}/images ─────────────────
+    public function uploadImages(Request $request, Produk $produk): JsonResponse
+    {
+        if (! $produk->is_verified) {
+            return response()->json([
+                'message' => 'Gambar hanya boleh ditambahkan pada produk yang sudah terverifikasi.',
+            ], 422);
+        }
+
+        $request->validate([
+            'images' => 'required|array|min:1|max:5',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+            'primary_index' => 'nullable|integer|min:0',
+        ]);
+
+        $primaryIdx = (int) ($request->primary_index ?? 0);
+        $uploaded = [];
+
+        foreach ($request->file('images') as $idx => $file) {
+            $path = $file->store("produk/{$produk->id}", 'public');
+            $isPrimary = ($idx === $primaryIdx);
+
+            // Jika ini akan jadi primary, reset primary lama
+            if ($isPrimary) {
+                GambarProduk::where('produk_id', $produk->id)
+                    ->where('is_primary', true)
+                    ->update(['is_primary' => false]);
+            }
+
+            $uploaded[] = GambarProduk::create([
+                'produk_id' => $produk->id,
+                'url_gambar' => $path,
+                'is_primary' => $isPrimary,
+            ]);
+        }
+
+        $this->logAudit('update', 'gambar_produks', $produk->id, null, [
+            'jumlah_upload' => count($uploaded),
+        ]);
+
+        return response()->json([
+            'message' => count($uploaded).' gambar berhasil diunggah.',
+            'data' => $uploaded,
+        ], 201);
+    }
+
+    // ── DELETE /api/admin/produk/{produk}/images ───────────────
+    public function deleteImage(Request $request, Produk $produk): JsonResponse
+    {
+        $request->validate([
+            'gambar_id' => 'required|integer|exists:gambar_produks,id',
+        ]);
+
+        $gambar = GambarProduk::where('id', $request->gambar_id)
+            ->where('produk_id', $produk->id)
+            ->firstOrFail();
+
+        Storage::disk('public')->delete($gambar->url_gambar);
+        $gambar->delete();
+
+        $this->logAudit('delete', 'gambar_produks', $gambar->id, [
+            'url_gambar' => $gambar->url_gambar,
+        ], null);
+
+        return response()->json(['message' => 'Gambar berhasil dihapus.']);
+    }
+
+    private function isPelakuUsahaUser(?int $userId): bool
+    {
+        if ($userId === null) {
+            return true;
+        }
+
+        return User::whereKey($userId)
+            ->whereHas('role', fn ($query) => $query->where('nama_role', 'user'))
+            ->exists();
+    }
+}
