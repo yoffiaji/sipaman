@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\HasImportSpreadsheetRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ImportCommitmentStatusRequest extends FormRequest
 {
+    use HasImportSpreadsheetRules;
+
     public function authorize(): bool
     {
         return true;
@@ -14,7 +17,7 @@ class ImportCommitmentStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+            'file' => $this->importSpreadsheetRules(),
         ];
     }
 }

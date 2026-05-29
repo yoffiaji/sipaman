@@ -2,8 +2,8 @@
 
 namespace App\Imports;
 
-use App\Models\JenisBarang;
 use App\Models\Produk;
+use App\Support\ProductTypeClassifier;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -88,9 +88,11 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
                     continue;
                 }
 
-                $jenisBarang = $jenisPangan
-                    ? JenisBarang::firstOrCreate(['nama_jenis' => $jenisPangan])
-                    : null;
+                // jenis_pangan asli tetap disimpan di produk, sedangkan
+                // jenis_barang_id diarahkan ke kategori tampilan yang sudah
+                // dinormalisasi agar filter publik/admin tidak berisi ratusan
+                // variasi mentah dari Excel.
+                $jenisBarang = app(ProductTypeClassifier::class)->resolve($kategoriPangan, $jenisPangan);
 
                 // Cek apakah produk sudah ada
                 $produkExisting = Produk::where('no_sppirt', $noSppirt)->first();

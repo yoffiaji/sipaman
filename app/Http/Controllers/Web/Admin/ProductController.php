@@ -35,7 +35,13 @@ class ProductController extends Controller
             'unverified' => Produk::where('is_verified', false)->count(),
         ];
 
-        $lastImport = ImportLog::with('user')->latest('imported_at')->first();
+        $lastImport = ImportLog::with('user')
+            ->where(function ($query) {
+                $query->where('tipe_file', 'rekap_pirt')
+                    ->orWhere('keterangan', 'like', '%rekap_pirt%');
+            })
+            ->latest('imported_at')
+            ->first();
 
         return view('admin.products.index', compact('products', 'stats', 'lastImport'));
     }
@@ -93,7 +99,10 @@ class ProductController extends Controller
     {
         return [
             'kecamatans' => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'jenisBarangs' => JenisBarang::orderBy('nama_jenis')->get(),
+            'jenisBarangs' => JenisBarang::query()
+                ->when(\Illuminate\Support\Facades\Schema::hasColumn('jenis_barangs', 'is_active'), fn ($query) => $query->where('is_active', true))
+                ->orderBy('nama_jenis')
+                ->get(),
         ];
     }
 }

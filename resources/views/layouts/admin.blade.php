@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Admin - Karanganyar Portal')</title>
+    @php($siteName = ($siteSettings['site_name'] ?? null) ?: 'SIPAMAN')
+    <title>@hasSection('title') @yield('title') | Admin {{ $siteName }} @else Admin {{ $siteName }} @endif</title>
 
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,7 +105,26 @@
 
         @keyframes rise { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
         .rise { animation: rise .6s cubic-bezier(.16,1,.3,1) both; }
+
+        .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-auto-resize]').forEach((textarea) => {
+                const resize = () => {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = `${textarea.scrollHeight}px`;
+                };
+
+                textarea.classList.add('scrollbar-none');
+                textarea.style.overflow = 'hidden';
+                resize();
+                textarea.addEventListener('input', resize);
+            });
+        });
+    </script>
 </head>
 <body class="min-h-screen bg-surface text-on-surface antialiased">
     <div class="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">

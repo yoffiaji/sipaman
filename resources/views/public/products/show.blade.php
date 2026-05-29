@@ -1,5 +1,5 @@
 @extends('layouts.public')
-@section('title', $produk->nama_branding . ' | Karanganyar Portal')
+@section('title', $produk->nama_branding)
 @section('content')
 <section class="mx-auto max-w-container px-4 pt-8 md:px-6">
     <nav class="flex items-center gap-1.5 text-sm text-on-surface-variant" aria-label="Breadcrumb">

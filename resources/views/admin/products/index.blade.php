@@ -62,6 +62,9 @@
                         Upload file Excel rekap PIRT untuk mengisi data produk: No SPPIRT, nama branding,
                         kategori pangan, NIB, wilayah, status OSS, pelaku usaha, dan alamat.
                     </p>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Format yang didukung: .xls, .xlsx, dan .csv. Maksimal 10 MB.
+                    </p>
                     <p class="mt-1 text-sm text-amber-700 font-medium">
                         Produk baru yang diimport akan berstatus <span class="font-bold">Belum Verifikasi</span>.
                         Lakukan verifikasi di halaman <a href="{{ route('admin.verifications.index') }}" class="underline">Verifikasi Produk</a>.

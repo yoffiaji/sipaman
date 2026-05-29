@@ -17,8 +17,15 @@ class StoreUserRequest extends FormRequest
             'nama' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email', 'max:150', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'in:user,admin'],
+            'role' => ['nullable', 'in:admin'],
             'status_akun' => ['nullable', 'in:aktif,nonaktif,kunci'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'role.in' => 'Dari halaman ini hanya boleh membuat akun admin. Akun pelaku usaha dibuat otomatis dari import/verifikasi PIRT.',
         ];
     }
 }

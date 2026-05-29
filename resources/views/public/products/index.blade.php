@@ -1,5 +1,5 @@
 @extends('layouts.public')
-@section('title', 'Katalog Produk | Karanganyar Portal')
+@section('title', 'Katalog Produk')
 @section('content')
 <section class="mx-auto max-w-container px-4 pt-10 md:px-6">
     <div class="relative overflow-hidden rounded-3xl border border-outline-variant bg-gradient-to-br from-primary-soft via-white to-secondary-soft p-8 md:p-12">

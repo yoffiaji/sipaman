@@ -36,13 +36,23 @@
                     <x-alert type="success">{{ session('success_nama') }}</x-alert>
                 @endif
 
-                {{-- Email (read-only, hanya tampil) --}}
+                {{-- Identifier login (read-only, hanya tampil) --}}
+                <div>
+                    <label class="mb-1.5 block text-sm font-600 text-on-surface">NIB Login</label>
+                    <div class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-low px-3.5 py-3 text-sm text-on-surface-variant">
+                        <span class="material-symbols-outlined text-[18px]">badge</span>
+                        {{ $user->nib ?? '—' }}
+                        <span class="ml-auto rounded-full bg-surface-container px-2 py-0.5 text-[10px] font-600">Tidak dapat diubah</span>
+                    </div>
+                    <p class="mt-1 text-xs text-on-surface-variant">Akun pelaku usaha login memakai NIB. Email bersifat opsional.</p>
+                </div>
+
                 <div>
                     <label class="mb-1.5 block text-sm font-600 text-on-surface">Email</label>
                     <div class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-low px-3.5 py-3 text-sm text-on-surface-variant">
                         <span class="material-symbols-outlined text-[18px]">mail</span>
                         {{ $user->email ?? '—' }}
-                        <span class="ml-auto rounded-full bg-surface-container px-2 py-0.5 text-[10px] font-600">Tidak dapat diubah</span>
+                        <span class="ml-auto rounded-full bg-surface-container px-2 py-0.5 text-[10px] font-600">Opsional</span>
                     </div>
                 </div>
 

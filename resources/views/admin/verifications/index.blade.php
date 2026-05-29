@@ -18,6 +18,7 @@
     <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="font-display text-xl font-bold">Import Status Pemenuhan Komitmen</h2>
         <p class="mt-1 text-slate-600">Upload Excel status komitmen untuk sinkron otomatis ke verifikasi produk.</p>
+        <p class="mt-1 text-sm text-slate-500">Format yang didukung: .xls, .xlsx, dan .csv. Maksimal 10 MB.</p>
         @if ($lastImport)
             <p class="mt-2 text-sm text-slate-500">Import terakhir: <span class="font-semibold">{{ $lastImport->nama_file }}</span> oleh {{ $lastImport->user?->nama ?? '-' }}</p>
         @endif

@@ -85,6 +85,11 @@ class PirtCommitmentStatusImport implements SkipsEmptyRows, ToCollection, WithSt
                     continue;
                 }
 
+                $nibDariStatus = $this->cleanString($this->valueAt($row, 8));
+                $namaPelakuUsahaStatus = $this->cleanString($this->valueAt($row, 4));
+                $alamatUsahaStatus = $this->cleanString($this->valueAt($row, 5));
+                $phoneStatus = $this->cleanString($this->valueAt($row, 6));
+
                 $verifikasiProduk = $this->parseBoolean($this->valueAt($row, 9));
                 $verifikasiLabel  = $this->parseBoolean($this->valueAt($row, 10));
                 $pkp              = $this->parseBoolean($this->valueAt($row, 11));
@@ -99,11 +104,11 @@ class PirtCommitmentStatusImport implements SkipsEmptyRows, ToCollection, WithSt
                         'produk_id'                 => $produk->id,
                         'provinsi'                  => $this->cleanString($this->valueAt($row, 2)),
                         'kab_kota'                  => $this->cleanString($this->valueAt($row, 3)),
-                        'nama_pelaku_usaha'         => $this->cleanString($this->valueAt($row, 4)),
-                        'alamat_usaha'              => $this->cleanString($this->valueAt($row, 5)),
-                        'phone'                     => $this->cleanString($this->valueAt($row, 6)),
+                        'nama_pelaku_usaha'         => $namaPelakuUsahaStatus,
+                        'alamat_usaha'              => $alamatUsahaStatus,
+                        'phone'                     => $phoneStatus,
                         'tanggal_terdaftar'         => $this->parseTanggal($this->valueAt($row, 7)),
-                        'nib'                       => $this->cleanString($this->valueAt($row, 8)),
+                        'nib'                       => $nibDariStatus,
                         'verifikasi_produk'         => $verifikasiProduk,
                         'verifikasi_label'          => $verifikasiLabel,
                         'pkp'                       => $pkp,
@@ -126,23 +131,35 @@ class PirtCommitmentStatusImport implements SkipsEmptyRows, ToCollection, WithSt
                 );
 
                 $tanggalVerifikasi = $statusKomitmen ? now()->toDateString() : null;
+                $nibLogin = $produk->nib ?: $nibDariStatus;
                 $produkUpdate = [
                     'is_verified'        => $statusKomitmen,
                     'tanggal_verifikasi' => $tanggalVerifikasi,
                     'masa_berlaku_pirt'  => $statusKomitmen ? now()->addYears(5)->toDateString() : null,
                 ];
 
-                // Auto-create user pelaku usaha kalau produk baru saja jadi verified
-                // dan punya NIB. Satu NIB = satu user; produk-produk dengan NIB sama
-                // dikonsolidasi ke user yang sama.
-                if ($statusKomitmen && $produk->nib) {
+                if (! $produk->nib && $nibDariStatus) {
+                    $produkUpdate['nib'] = $nibDariStatus;
+                }
+
+                if (! $produk->no_hp && $phoneStatus) {
+                    $produkUpdate['no_hp'] = $phoneStatus;
+                }
+
+                if (! $produk->alamat && $alamatUsahaStatus) {
+                    $produkUpdate['alamat'] = $alamatUsahaStatus;
+                }
+
+                // Auto-create user pelaku usaha kalau produk lulus verifikasi
+                // dan punya NIB dari Rekap PIRT atau fallback dari file status.
+                // Satu NIB = satu user; admin cukup set password, bukan email.
+                if ($statusKomitmen && $nibLogin) {
                     $userId = $this->ensureUserForNib(
-                        nib: $produk->nib,
-                        namaPelakuUsaha: $produk->nama_pelaku_usaha,
+                        nib: $nibLogin,
+                        namaPelakuUsaha: $produk->nama_pelaku_usaha ?: $namaPelakuUsahaStatus,
                         namaBranding: $produk->nama_branding
                     );
 
-                    // Tautkan produk ke user (kalau belum tertaut)
                     if ($userId && $produk->user_id !== $userId) {
                         $produkUpdate['user_id'] = $userId;
                     }

@@ -21,7 +21,10 @@ class UserManagementController extends Controller
         $users = User::with('role')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->query('search');
-                $query->where(fn ($q) => $q->where('nama', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+                $query->where(fn ($q) => $q
+                    ->where('nama', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('nib', 'like', "%{$search}%"));
             })
             ->when($request->filled('role'), fn ($query) => $query->whereHas('role', fn ($q) => $q->where('nama_role', $request->query('role'))))
             ->orderBy('nama')
@@ -33,11 +36,12 @@ class UserManagementController extends Controller
     public function store(StoreUserRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $role = Role::where('nama_role', $data['role'])->firstOrFail();
+        $role = Role::where('nama_role', 'admin')->firstOrFail();
 
         $user = User::create([
             'nama' => $data['nama'],
             'email' => $data['email'],
+            'nib' => null,
             'password' => Hash::make($data['password']),
             'role_id' => $role->id,
             'status_akun' => $data['status_akun'] ?? 'aktif',
@@ -45,7 +49,7 @@ class UserManagementController extends Controller
 
         $this->logAudit('create', 'users', $user->id, null, $user->load('role')->toArray());
 
-        return response()->json(['message' => 'User berhasil dibuat.', 'data' => $user->load('role')], 201);
+        return response()->json(['message' => 'Admin berhasil dibuat.', 'data' => $user->load('role')], 201);
     }
 
     public function show(User $user): JsonResponse
@@ -61,22 +65,24 @@ class UserManagementController extends Controller
 
         $before = $user->load('role')->toArray();
         $data = $request->validated();
-
-        if (isset($data['role'])) {
-            $data['role_id'] = Role::where('nama_role', $data['role'])->firstOrFail()->id;
-        }
-        unset($data['role']);
+        $updateData = [];
 
         if (! empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
-            unset($data['password']);
+            $updateData['password'] = Hash::make($data['password']);
         }
 
-        $user->update($data);
+        if (array_key_exists('status_akun', $data)) {
+            $updateData['status_akun'] = $data['status_akun'];
+        }
+
+        if ($updateData === []) {
+            return response()->json(['message' => 'Tidak ada perubahan yang disimpan.', 'data' => $user->load('role')]);
+        }
+
+        $user->update($updateData);
         $this->logAudit('update', 'users', $user->id, $before, $user->fresh('role')->toArray());
 
-        return response()->json(['message' => 'User berhasil diperbarui.', 'data' => $user->fresh('role')]);
+        return response()->json(['message' => 'Credential/status akun berhasil diperbarui.', 'data' => $user->fresh('role')]);
     }
 
     public function destroy(User $user): JsonResponse
@@ -85,10 +91,14 @@ class UserManagementController extends Controller
             return response()->json(['message' => 'Akun ini tidak boleh dihapus.'], 403);
         }
 
+        if (($user->role->nama_role ?? null) !== 'admin') {
+            return response()->json(['message' => 'Akun pelaku usaha tidak boleh dihapus. Nonaktifkan atau kunci akun jika perlu.'], 403);
+        }
+
         $before = $user->load('role')->toArray();
         $user->delete();
         $this->logAudit('delete', 'users', $before['id'], $before, null);
 
-        return response()->json(['message' => 'User berhasil dihapus.']);
+        return response()->json(['message' => 'Admin berhasil dihapus.']);
     }
 }

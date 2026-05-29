@@ -1,4 +1,9 @@
 @php
+    $settings = $siteSettings ?? [];
+    $siteName = ($settings['site_name'] ?? null) ?: 'SIPAMAN';
+    $siteTagline = ($settings['site_tagline'] ?? null) ?: 'Sistem Informasi Pangan Aman';
+    $logoPath = $settings['logo_path'] ?? null;
+    $logoUrl = $logoPath ? \Illuminate\Support\Facades\Storage::disk('public')->url($logoPath) : null;
     $dashboardRoute = null;
 
     if (auth()->check()) {
@@ -16,12 +21,16 @@
     <div class="mx-auto max-w-container px-4 md:px-6">
         <div class="flex h-20 items-center justify-between">
             <a href="{{ route('home') }}" class="group flex items-center gap-3">
-                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-surface shadow-soft transition-transform group-hover:-rotate-6">
-                    <span class="material-symbols-outlined text-[22px]">eco</span>
-                </span>
+                @if ($logoUrl)
+                    <img src="{{ $logoUrl }}" alt="{{ $siteName }}" class="h-11 w-11 rounded-xl object-cover shadow-soft">
+                @else
+                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-surface shadow-soft transition-transform group-hover:-rotate-6">
+                        <span class="material-symbols-outlined text-[22px]">verified_user</span>
+                    </span>
+                @endif
                 <span class="leading-tight">
-                    <span class="block font-display text-lg font-700 text-primary">Karanganyar Portal</span>
-                    <span class="eyebrow block text-[10px] font-600 text-on-surface-variant">Direktori PIRT &amp; UMKM</span>
+                    <span class="block font-display text-lg font-700 text-primary">{{ $siteName }}</span>
+                    <span class="eyebrow block text-[10px] font-600 text-on-surface-variant">{{ $siteTagline }}</span>
                 </span>
             </a>
 

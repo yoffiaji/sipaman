@@ -3,7 +3,6 @@
 namespace App\Http\Requests\SuperAdmin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -15,11 +14,22 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nama' => ['sometimes', 'required', 'string', 'max:150'],
-            'email' => ['sometimes', 'required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($this->route('user')?->id)],
+            'nama' => ['prohibited'],
+            'email' => ['prohibited'],
+            'nib' => ['prohibited'],
+            'role' => ['prohibited'],
             'password' => ['nullable', 'string', 'min:8'],
-            'role' => ['sometimes', 'required', 'in:user,admin'],
             'status_akun' => ['sometimes', 'required', 'in:aktif,nonaktif,kunci'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nama.prohibited' => 'Nama tidak boleh diubah dari halaman manajemen user.',
+            'email.prohibited' => 'Email tidak boleh diubah dari halaman manajemen user.',
+            'nib.prohibited' => 'NIB tidak boleh diubah dari halaman manajemen user.',
+            'role.prohibited' => 'Role tidak boleh diubah dari halaman manajemen user.',
         ];
     }
 }

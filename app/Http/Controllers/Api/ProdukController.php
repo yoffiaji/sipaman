@@ -9,6 +9,7 @@ use App\Models\Produk;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class ProdukController extends Controller
 {
@@ -48,7 +49,10 @@ class ProdukController extends Controller
         });
 
         $jenisBarangs = Cache::remember('jenis_barangs_all', 3600, function () {
-            return JenisBarang::orderBy('nama_jenis')->get(['id', 'nama_jenis']);
+            return JenisBarang::query()
+                ->when(Schema::hasColumn('jenis_barangs', 'is_active'), fn ($query) => $query->where('is_active', true))
+                ->orderBy('nama_jenis')
+                ->get(['id', 'nama_jenis']);
         });
 
         return response()->json([

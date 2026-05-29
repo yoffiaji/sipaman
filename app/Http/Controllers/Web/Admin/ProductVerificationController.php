@@ -51,7 +51,10 @@ class ProductVerificationController extends Controller
         ];
 
         $lastImport = ImportLog::with('user')
-            ->where('keterangan', 'like', '%status_komitmen%')
+            ->where(function ($query) {
+                $query->where('tipe_file', 'status_komitmen')
+                    ->orWhere('keterangan', 'like', '%status_komitmen%');
+            })
             ->latest('imported_at')
             ->first();
 
@@ -69,7 +72,7 @@ class ProductVerificationController extends Controller
         $this->logAudit('import', 'pirt_commitment_statuses', null, null, $result);
 
         return back()
-            ->with('success', "Import Status Pemenuhan Komitmen selesai. Berhasil: {$result['berhasil']}, gagal: {$result['gagal']}.")
+            ->with('success', "Import Status Pemenuhan Komitmen selesai. Berhasil: {$result['berhasil']}, gagal: {$result['gagal']}, user baru dibuat: {$result['user_baru_dibuat']}.")
             ->with('import_failures', array_slice($result['failures'], 0, 5));
     }
 

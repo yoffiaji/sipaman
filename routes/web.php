@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Web\Admin\ImportLogController;
 use App\Http\Controllers\Web\Admin\JenisBarangController;
 use App\Http\Controllers\Web\Admin\LandingPageController;
 use App\Http\Controllers\Web\Admin\LogController;
@@ -89,6 +90,7 @@ Route::middleware(['auth', 'role:admin,super_admin'])
             ->only(['index', 'update']);
 
         Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+        Route::get('/import-logs', [ImportLogController::class, 'index'])->name('import-logs.index');
     });
 
 Route::middleware(['auth', 'role:super_admin'])

@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
 
         if ($user->needsPasswordSetup()) {
             throw ValidationException::withMessages([
-                'identifier' => 'Akun Anda belum diaktifkan. Silakan minta password ke admin PIRT.',
+                'identifier' => 'Akun Anda belum diaktifkan. Silakan minta password ke admin SIPAMAN.',
             ]);
         }
 

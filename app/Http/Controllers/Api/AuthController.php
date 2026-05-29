@@ -21,7 +21,7 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         return response()->json([
-            'message' => 'Registrasi mandiri dinonaktifkan. Akun pelaku usaha dibuat oleh admin PIRT.',
+            'message' => 'Registrasi mandiri dinonaktifkan. Akun pelaku usaha dibuat oleh admin SIPAMAN.',
         ], 403);
     }
 
@@ -61,7 +61,7 @@ class AuthController extends Controller
         // Pesan khusus supaya pelaku usaha tahu harus minta password ke admin.
         if ($user->needsPasswordSetup()) {
             return response()->json([
-                'message'              => 'Akun Anda belum diaktifkan. Silakan minta password ke admin PIRT.',
+                'message'              => 'Akun Anda belum diaktifkan. Silakan minta password ke admin SIPAMAN.',
                 'needs_password_setup' => true,
             ], 403);
         }

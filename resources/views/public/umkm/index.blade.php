@@ -1,5 +1,5 @@
 @extends('layouts.public')
-@section('title', 'UMKM | Karanganyar Portal')
+@section('title', 'UMKM')
 @section('content')
 <section class="mx-auto max-w-container px-4 pt-10 md:px-6">
     <div class="relative overflow-hidden rounded-3xl border border-outline-variant bg-gradient-to-br from-secondary-soft via-white to-primary-soft p-8 md:p-12">

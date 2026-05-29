@@ -22,7 +22,10 @@ class UserManagementController extends Controller
         $users = User::with('role')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->query('search');
-                $query->where(fn ($q) => $q->where('nama', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+                $query->where(fn ($q) => $q
+                    ->where('nama', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('nib', 'like', "%{$search}%"));
             })
             ->when($request->filled('role'), fn ($query) => $query->whereHas('role', fn ($q) => $q->where('nama_role', $request->query('role'))))
             ->orderBy('nama')
@@ -34,18 +37,18 @@ class UserManagementController extends Controller
 
     public function create(): View
     {
-        $roles = Role::whereIn('nama_role', ['user', 'admin'])->orderBy('nama_role')->get();
-        return view('super-admin.users.create', compact('roles'));
+        return view('super-admin.users.create');
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $role = Role::where('nama_role', $data['role'])->firstOrFail();
+        $role = Role::where('nama_role', 'admin')->firstOrFail();
 
         $user = User::create([
             'nama' => $data['nama'],
             'email' => $data['email'],
+            'nib' => null,
             'password' => Hash::make($data['password']),
             'role_id' => $role->id,
             'status_akun' => $data['status_akun'] ?? 'aktif',
@@ -53,7 +56,7 @@ class UserManagementController extends Controller
 
         $this->logAudit('create', 'users', $user->id, null, $user->load('role')->toArray());
 
-        return redirect()->route('super-admin.users.index')->with('success', 'User berhasil dibuat.');
+        return redirect()->route('super-admin.users.index')->with('success', 'Admin berhasil dibuat.');
     }
 
     public function edit(User $user): View
@@ -61,10 +64,9 @@ class UserManagementController extends Controller
         abort_if($user->id === auth()->id(), 403, 'Akun sendiri tidak bisa diedit dari halaman ini.');
         abort_if(($user->role->nama_role ?? null) === 'super_admin', 403, 'Akun super admin tidak bisa diedit.');
 
-        $roles = Role::whereIn('nama_role', ['user', 'admin'])->orderBy('nama_role')->get();
         $user->load('role');
 
-        return view('super-admin.users.edit', compact('user', 'roles'));
+        return view('super-admin.users.edit', compact('user'));
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
@@ -75,32 +77,36 @@ class UserManagementController extends Controller
         $before = $user->load('role')->toArray();
         $data = $request->validated();
 
-        if (isset($data['role'])) {
-            $data['role_id'] = Role::where('nama_role', $data['role'])->firstOrFail()->id;
-        }
-        unset($data['role']);
+        $updateData = [];
 
         if (! empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
-            unset($data['password']);
+            $updateData['password'] = Hash::make($data['password']);
         }
 
-        $user->update($data);
+        if (array_key_exists('status_akun', $data)) {
+            $updateData['status_akun'] = $data['status_akun'];
+        }
+
+        if ($updateData === []) {
+            return back()->with('success', 'Tidak ada perubahan yang disimpan.');
+        }
+
+        $user->update($updateData);
         $this->logAudit('update', 'users', $user->id, $before, $user->fresh('role')->toArray());
 
-        return redirect()->route('super-admin.users.index')->with('success', 'User berhasil diperbarui.');
+        return redirect()->route('super-admin.users.index')->with('success', 'Credential/status akun berhasil diperbarui.');
     }
 
     public function destroy(User $user): RedirectResponse
     {
         abort_if($user->id === auth()->id(), 403, 'Akun sendiri tidak bisa dihapus.');
         abort_if(($user->role->nama_role ?? null) === 'super_admin', 403, 'Akun super admin tidak bisa dihapus.');
+        abort_unless(($user->role->nama_role ?? null) === 'admin', 403, 'Akun pelaku usaha tidak boleh dihapus. Nonaktifkan atau kunci akun jika perlu.');
 
         $before = $user->load('role')->toArray();
         $user->delete();
         $this->logAudit('delete', 'users', $before['id'], $before, null);
 
-        return redirect()->route('super-admin.users.index')->with('success', 'User berhasil dihapus.');
+        return redirect()->route('super-admin.users.index')->with('success', 'Admin berhasil dihapus.');
     }
 }

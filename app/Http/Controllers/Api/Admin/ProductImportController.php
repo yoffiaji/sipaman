@@ -18,7 +18,12 @@ class ProductImportController extends Controller
 
     public function rekapPirt(ImportProductRequest $request): JsonResponse
     {
-        $result = $this->productImportService->importRekapPirt($request->file('file'));
+        try {
+            $result = $this->productImportService->importRekapPirt($request->file('file'));
+        } catch (\Throwable $e) {
+            return response()->json(['message' => 'Import gagal: ' . $e->getMessage()], 422);
+        }
+
         $this->logAudit('import', 'produks', null, null, $result);
 
         return response()->json(['message' => 'Import Rekap PIRT selesai.', 'data' => $result]);
