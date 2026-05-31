@@ -28,7 +28,7 @@ class CheckRole
                 $request->session()->regenerateToken();
 
                 return redirect()->route('login')
-                    ->withErrors(['email' => 'Akun Anda '.$user->status_akun.'. Hubungi administrator.']);
+                    ->withErrors(['identifier' => 'Akun Anda '.$user->status_akun.'. Hubungi administrator.']);
             }
 
             return response()->json([

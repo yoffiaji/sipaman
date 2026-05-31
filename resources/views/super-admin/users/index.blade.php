@@ -16,7 +16,7 @@
         </div>
 
         <form method="GET" class="mt-5 grid gap-3 md:grid-cols-[1fr_180px_auto]">
-            <input name="search" value="{{ request('search') }}" placeholder="Cari nama/email/NIB" class="rounded-lg border-slate-300">
+            <input name="search" value="{{ request('search') }}" placeholder="Cari nama, email admin, atau NIB" class="rounded-lg border-slate-300">
             <select name="role" class="rounded-lg border-slate-300">
                 <option value="">Semua Role</option>
                 @foreach(['user','admin'] as $role)

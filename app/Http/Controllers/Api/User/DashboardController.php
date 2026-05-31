@@ -18,7 +18,7 @@ class DashboardController extends Controller
             'user' => [
                 'id' => $user->id,
                 'nama' => $user->nama,
-                'email' => $user->email,
+                'nib' => $user->nib,
                 'role' => $user->role->nama_role ?? null,
                 'status_akun' => $user->status_akun,
             ],

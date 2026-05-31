@@ -11,7 +11,7 @@
 @endif
 
 <x-alert type="info" class="mb-5">
-    Nama, NIB/email login, dan role dikunci agar identitas akun tetap konsisten dengan data PIRT. Yang dapat diubah hanya password dan status akun.
+    Nama, identifier login, dan role dikunci agar identitas akun tetap konsisten. Pelaku usaha memakai NIB, admin memakai email. Yang dapat diubah hanya password dan status akun.
 </x-alert>
 
 <form action="{{ route('super-admin.users.update', $user) }}" method="POST" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

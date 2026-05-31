@@ -43,18 +43,18 @@
         </div>
         <div>
             <label class="text-sm font-semibold">NIB Login</label>
-            <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ $user->nib ?: '—' }}</div>
+            <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ $user->nib ?: '-' }}</div>
             @if (($user->role?->nama_role ?? null) === 'user')
                 <p class="mt-1 text-xs text-slate-500">Pelaku usaha login memakai NIB ini.</p>
             @endif
         </div>
-        <div>
-            <label class="text-sm font-semibold">Email Login</label>
-            <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ $user->email ?: '—' }}</div>
-            @if (($user->role?->nama_role ?? null) === 'admin')
+        @if (($user->role?->nama_role ?? null) !== 'user')
+            <div>
+                <label class="text-sm font-semibold">Email Login</label>
+                <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ $user->email ?: '-' }}</div>
                 <p class="mt-1 text-xs text-slate-500">Admin login memakai email ini.</p>
-            @endif
-        </div>
+            </div>
+        @endif
         <div>
             <label class="text-sm font-semibold">Password Baru</label>
             <input type="password" name="password" class="mt-1 w-full rounded-lg border-slate-300" placeholder="Kosongkan jika tidak diganti">

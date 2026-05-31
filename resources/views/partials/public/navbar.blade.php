@@ -5,9 +5,13 @@
     $logoPath = $settings['logo_path'] ?? null;
     $logoUrl = $logoPath ? \Illuminate\Support\Facades\Storage::disk('public')->url($logoPath) : null;
     $dashboardRoute = null;
+    $accountIdentifier = null;
 
     if (auth()->check()) {
         $dashboardRoute = auth()->user()->hasRole('user') ? 'user.dashboard' : 'admin.dashboard';
+        $accountIdentifier = auth()->user()->hasRole('user')
+            ? 'NIB ' . (auth()->user()->nib ?? '-')
+            : (auth()->user()->email ?? '-');
     }
 
     $links = [
@@ -46,7 +50,6 @@
                 @endforeach
 
                 @auth
-                    {{-- Ikon orang: klik untuk membuka menu akun --}}
                     <div class="relative ml-2" data-account-menu>
                         <button
                             type="button"
@@ -58,11 +61,10 @@
                             <span class="material-symbols-outlined text-[24px]">person</span>
                         </button>
 
-                        {{-- Dropdown --}}
                         <div class="account-dropdown absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border border-outline-variant bg-white shadow-lift">
                             <div class="border-b border-outline-variant px-4 py-3">
                                 <p class="truncate text-sm font-700 text-ink">{{ auth()->user()->nama }}</p>
-                                <p class="truncate text-xs text-on-surface-variant">{{ auth()->user()->email ?? '—' }}</p>
+                                <p class="truncate text-xs text-on-surface-variant">{{ $accountIdentifier }}</p>
                             </div>
                             <a
                                 href="{{ route($dashboardRoute) }}"
@@ -124,7 +126,7 @@
                         </span>
                         <span class="min-w-0">
                             <span class="block truncate text-sm font-700 text-ink">{{ auth()->user()->nama }}</span>
-                            <span class="block truncate text-xs text-on-surface-variant">{{ auth()->user()->email ?? '—' }}</span>
+                            <span class="block truncate text-xs text-on-surface-variant">{{ $accountIdentifier }}</span>
                         </span>
                     </div>
                     <a
@@ -155,7 +157,6 @@
     </div>
 </header>
 
-{{-- Style & script untuk dropdown menu akun --}}
 <style>
     [data-account-menu] .account-dropdown {
         opacity: 0;

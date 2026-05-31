@@ -50,10 +50,10 @@
                 <form class="mt-6 space-y-5" method="POST" action="{{ route('login.store') }}">
                     @csrf
                     <div>
-                        <label class="text-sm font-600 text-on-surface" for="identifier">Email atau NIB</label>
+                        <label class="text-sm font-600 text-on-surface" for="identifier">NIB / Email Admin</label>
                         <div class="mt-2 flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container-low px-3.5 focus-within:border-primary">
                             <span class="material-symbols-outlined text-on-surface-variant">person</span>
-                            <input class="w-full border-0 bg-transparent py-3 text-on-surface placeholder:text-on-surface-variant focus:ring-0" id="identifier" name="identifier" type="text" value="{{ old('identifier') }}" placeholder="admin@pirt.go.id atau NIB" required autofocus>
+                            <input class="w-full border-0 bg-transparent py-3 text-on-surface placeholder:text-on-surface-variant focus:ring-0" id="identifier" name="identifier" type="text" value="{{ old('identifier') }}" placeholder="NIB pelaku usaha atau email admin" required autofocus>
                         </div>
                         <p class="mt-1.5 text-xs text-on-surface-variant">Admin login dengan email, pelaku usaha dengan NIB.</p>
                     </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\LogsAuditTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,8 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    use LogsAuditTrail;
+
     public function create(): View
     {
         return view('auth.login');
@@ -27,16 +30,11 @@ class AuthenticatedSessionController extends Controller
 
         $identifier = trim($credentials['identifier']);
 
-        $user = User::with('role')
-            ->where(function ($q) use ($identifier) {
-                $q->where('email', $identifier)
-                  ->orWhere('nib', $identifier);
-            })
-            ->first();
+        $user = $this->findUserByIdentifier($identifier);
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'identifier' => 'Email/NIB atau password salah.',
+                'identifier' => 'Identitas login atau password salah.',
             ]);
         }
 
@@ -48,7 +46,7 @@ class AuthenticatedSessionController extends Controller
 
         if (! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'identifier' => 'Email/NIB atau password salah.',
+                'identifier' => 'Identitas login atau password salah.',
             ]);
         }
 
@@ -60,12 +58,19 @@ class AuthenticatedSessionController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+        $this->logActivity('Login web berhasil - '.$this->activityIdentity($user), $user->id);
 
         return redirect()->intended($this->redirectPath($user));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user) {
+            $this->logActivity('Logout web - '.$this->activityIdentity($user), $user->id);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
@@ -81,5 +86,30 @@ class AuthenticatedSessionController extends Controller
             'user' => route('user.dashboard'),
             default => route('home'),
         };
+    }
+
+    private function findUserByIdentifier(string $identifier): ?User
+    {
+        return User::with('role')
+            ->where(function ($query) use ($identifier) {
+                $query->where(function ($userQuery) use ($identifier) {
+                    $userQuery->where('nib', $identifier)
+                        ->whereHas('role', fn ($roleQuery) => $roleQuery->where('nama_role', 'user'));
+                })->orWhere(function ($adminQuery) use ($identifier) {
+                    $adminQuery->where('email', $identifier)
+                        ->whereHas('role', fn ($roleQuery) => $roleQuery->whereIn('nama_role', ['admin', 'super_admin']));
+                });
+            })
+            ->first();
+    }
+
+    private function activityIdentity(User $user): string
+    {
+        $role = $user->role->nama_role ?? 'unknown';
+        $identifier = $user->hasRole('user')
+            ? 'NIB '.($user->nib ?? "user#{$user->id}")
+            : 'email '.($user->email ?? "user#{$user->id}");
+
+        return "role: {$role}, {$identifier}";
     }
 }

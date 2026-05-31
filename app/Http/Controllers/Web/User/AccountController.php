@@ -15,21 +15,6 @@ class AccountController extends Controller
         return view('user.settings.index', compact('user'));
     }
 
-    public function updateNama(Request $request)
-    {
-        $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-        ], [
-            'nama.required' => 'Nama tidak boleh kosong.',
-        ]);
-
-        $user = Auth::user();
-        $user->nama = $request->nama;
-        $user->save();
-
-        return back()->with('success_nama', 'Nama berhasil diperbarui.');
-    }
-
     public function updatePassword(Request $request)
     {
         $request->validate([

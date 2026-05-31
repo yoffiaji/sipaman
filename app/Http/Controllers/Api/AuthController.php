@@ -27,9 +27,9 @@ class AuthController extends Controller
 
     // ──────────────────────────────────────────────────────────
     //  POST /api/auth/login  (Publik)
-    //  Body: { "identifier": "<nib or email>", "password": "..." }
+    //  Body: { "identifier": "<NIB pelaku usaha atau email admin>", "password": "..." }
     //
-    //  identifier diterima sebagai NIB (angka) ATAU email.
+    //  identifier diterima sebagai NIB untuk pelaku usaha atau email untuk admin.
     //  - Admin/super_admin: pakai email
     //  - Pelaku usaha: pakai NIB
     // ──────────────────────────────────────────────────────────
@@ -42,18 +42,13 @@ class AuthController extends Controller
 
         $identifier = trim($request->identifier);
 
-        $user = User::with('role')
-            ->where(function ($q) use ($identifier) {
-                $q->where('email', $identifier)
-                  ->orWhere('nib', $identifier);
-            })
-            ->first();
+        $user = $this->findUserByIdentifier($identifier);
 
         // Pesan generik untuk identifier yang tidak ditemukan — jangan
-        // bocorkan apakah email/NIB-nya valid (security best practice).
+        // membocorkan apakah identitas login valid.
         if (! $user) {
             throw ValidationException::withMessages([
-                'identifier' => ['Email/NIB atau password salah.'],
+                'identifier' => ['Identitas login atau password salah.'],
             ]);
         }
 
@@ -68,7 +63,7 @@ class AuthController extends Controller
 
         if (! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'identifier' => ['Email/NIB atau password salah.'],
+                'identifier' => ['Identitas login atau password salah.'],
             ]);
         }
 
@@ -83,8 +78,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $logIdentifier = $user->email ?? $user->nib ?? "user#{$user->id}";
-        $this->logActivity("Login berhasil: {$logIdentifier}", $user->id);
+        $this->logActivity('Login API berhasil - '.$this->activityIdentity($user), $user->id);
 
         return response()->json([
             'message' => 'Login berhasil.',
@@ -99,8 +93,7 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         $user = $request->user();
-        $logIdentifier = $user->email ?? $user->nib ?? "user#{$user->id}";
-        $this->logActivity("Logout: {$logIdentifier}");
+        $this->logActivity('Logout API - '.$this->activityIdentity($user), $user->id);
         $user->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logout berhasil.']);
@@ -123,11 +116,22 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        $data = $request->validate([
-            'nama'     => 'sometimes|string|max:150',
-            'email'    => "sometimes|nullable|email|max:150|unique:users,email,{$user->id}",
-            'password' => ['sometimes', 'confirmed', Password::min(8)],
-        ]);
+        if ($user->hasRole('user')) {
+            $data = $request->validate([
+                'nama' => ['prohibited'],
+                'email' => ['prohibited'],
+                'password' => ['sometimes', 'confirmed', Password::min(8)],
+            ], [
+                'nama.prohibited' => 'Nama pelaku usaha mengikuti data PIRT dan tidak dapat diubah dari akun user.',
+                'email.prohibited' => 'Akun pelaku usaha login memakai NIB, bukan email.',
+            ]);
+        } else {
+            $data = $request->validate([
+                'nama' => 'sometimes|string|max:150',
+                'email' => "sometimes|nullable|email|max:150|unique:users,email,{$user->id}",
+                'password' => ['sometimes', 'confirmed', Password::min(8)],
+            ]);
+        }
 
         $sebelum = $user->only(['nama', 'email']);
 
@@ -148,13 +152,43 @@ class AuthController extends Controller
     // ── Private Helper ────────────────────────────────────────
     private function formatUser(User $user): array
     {
-        return [
+        $data = [
             'id'          => $user->id,
             'nama'        => $user->nama,
-            'email'       => $user->email,
             'nib'         => $user->nib,
             'role'        => $user->role->nama_role ?? null,
             'status_akun' => $user->status_akun,
         ];
+
+        if (! $user->hasRole('user')) {
+            $data['email'] = $user->email;
+        }
+
+        return $data;
+    }
+
+    private function findUserByIdentifier(string $identifier): ?User
+    {
+        return User::with('role')
+            ->where(function ($query) use ($identifier) {
+                $query->where(function ($userQuery) use ($identifier) {
+                    $userQuery->where('nib', $identifier)
+                        ->whereHas('role', fn ($roleQuery) => $roleQuery->where('nama_role', 'user'));
+                })->orWhere(function ($adminQuery) use ($identifier) {
+                    $adminQuery->where('email', $identifier)
+                        ->whereHas('role', fn ($roleQuery) => $roleQuery->whereIn('nama_role', ['admin', 'super_admin']));
+                });
+            })
+            ->first();
+    }
+
+    private function activityIdentity(User $user): string
+    {
+        $role = $user->role->nama_role ?? 'unknown';
+        $identifier = $user->hasRole('user')
+            ? 'NIB '.($user->nib ?? "user#{$user->id}")
+            : 'email '.($user->email ?? "user#{$user->id}");
+
+        return "role: {$role}, {$identifier}";
     }
 }
