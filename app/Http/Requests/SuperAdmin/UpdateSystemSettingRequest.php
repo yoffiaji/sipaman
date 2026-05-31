@@ -16,7 +16,7 @@ class UpdateSystemSettingRequest extends FormRequest
     {
         return [
             'value' => ['nullable', 'string', 'max:5000'],
-            'deskripsi' => ['nullable', 'string', 'max:500'],
+            'deskripsi' => ['prohibited'],
         ];
     }
 
@@ -24,7 +24,7 @@ class UpdateSystemSettingRequest extends FormRequest
     {
         return [
             'value.max' => 'Nilai pengaturan maksimal 5000 karakter.',
-            'deskripsi.max' => 'Deskripsi pengaturan maksimal 500 karakter.',
+            'deskripsi.prohibited' => 'Keterangan fungsi pengaturan dikelola oleh sistem dan tidak dapat diedit dari form ini.',
         ];
     }
 

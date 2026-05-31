@@ -20,7 +20,7 @@
         @endif
 
         <x-alert type="info">
-            System Settings dipakai untuk konfigurasi global seperti nama aplikasi, kontak, alamat, dan teks footer. Jangan simpan password, token, API key, atau secret di halaman ini.
+            System Settings dipakai untuk konfigurasi global seperti nama aplikasi, kontak, alamat, dan teks footer. Keterangan fungsi pengaturan hanya bantuan untuk admin, bukan konten publik. Jangan simpan password, token, API key, atau secret di halaman ini.
         </x-alert>
 
         @forelse($settings as $setting)
@@ -41,8 +41,10 @@
                 <label class="mt-5 block text-sm font-semibold text-slate-700">Nilai</label>
                 <textarea name="value" rows="3" class="mt-1 w-full rounded-lg border-slate-300" placeholder="Isi nilai pengaturan global">{{ old('value', $setting->value) }}</textarea>
 
-                <label class="mt-4 block text-sm font-semibold text-slate-700">Deskripsi untuk super admin</label>
-                <input name="deskripsi" value="{{ old('deskripsi', $setting->deskripsi) }}" class="mt-1 w-full rounded-lg border-slate-300" placeholder="Catatan singkat fungsi pengaturan ini">
+                <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <p class="text-sm font-semibold text-slate-700">Keterangan Fungsi Pengaturan</p>
+                    <p class="mt-1 text-sm text-slate-600">{{ $setting->deskripsi ?: 'Belum ada keterangan.' }}</p>
+                </div>
 
                 <button class="mt-4 rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white">Simpan Pengaturan</button>
             </form>
