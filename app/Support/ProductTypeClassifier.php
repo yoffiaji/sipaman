@@ -4,11 +4,14 @@ namespace App\Support;
 
 use App\Models\JenisBarang;
 use App\Models\JenisBarangAlias;
+use App\Models\Produk;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ProductTypeClassifier
 {
+    public const FALLBACK_CATEGORY = 'Lainnya / Perlu Review';
+
     private const DEFAULT_DESCRIPTIONS = [
         'Makanan Ringan' => 'Camilan kering, keripik, kerupuk, rengginang, dan snack sejenis.',
         'Roti & Kue' => 'Produk bakery, roti, cake, cookies, biskuit, dan jajanan kue.',
@@ -19,7 +22,7 @@ class ProductTypeClassifier
         'Olahan Kacang, Biji & Umbi' => 'Produk berbahan kacang, biji-bijian, serealia, singkong, ubi, kentang, dan tepung.',
         'Gula, Madu & Pemanis' => 'Produk gula, madu, sirup, permen, cokelat, dan pemanis sejenis.',
         'Makanan Siap Saji' => 'Produk pangan olahan siap konsumsi atau siap dipanaskan.',
-        'Lainnya / Perlu Review' => 'Data belum cocok dengan aturan klasifikasi dan perlu direview admin.',
+        self::FALLBACK_CATEGORY => 'Data belum cocok dengan aturan klasifikasi dan perlu direview admin.',
     ];
 
     private const KEYWORD_RULES = [
@@ -74,7 +77,7 @@ class ProductTypeClassifier
             }
         }
 
-        return $this->firstOrCreateCategory('Lainnya / Perlu Review');
+        return $this->fallbackCategory();
     }
 
     public function seedDefaults(): void
@@ -99,6 +102,56 @@ class ProductTypeClassifier
         }
     }
 
+    public function fallbackCategory(): JenisBarang
+    {
+        return $this->firstOrCreateCategory(self::FALLBACK_CATEGORY);
+    }
+
+    public function normalizeKeyword(string $value): string
+    {
+        return $this->normalize($value);
+    }
+
+    public function reclassifyExistingProducts(): array
+    {
+        $checked = 0;
+        $updated = 0;
+        $fallback = 0;
+
+        Produk::query()
+            ->select(['id', 'kategori_pangan', 'jenis_pangan', 'jenis_barang_id'])
+            ->orderBy('id')
+            ->chunkById(100, function ($produks) use (&$checked, &$updated, &$fallback) {
+                foreach ($produks as $produk) {
+                    if (blank($produk->kategori_pangan) && blank($produk->jenis_pangan)) {
+                        continue;
+                    }
+
+                    $checked++;
+                    $jenisBarang = $this->resolve($produk->kategori_pangan, $produk->jenis_pangan);
+
+                    if (! $jenisBarang) {
+                        continue;
+                    }
+
+                    if ($jenisBarang->nama_jenis === self::FALLBACK_CATEGORY) {
+                        $fallback++;
+                    }
+
+                    if ((int) $produk->jenis_barang_id !== (int) $jenisBarang->id) {
+                        $produk->forceFill(['jenis_barang_id' => $jenisBarang->id])->save();
+                        $updated++;
+                    }
+                }
+            });
+
+        return [
+            'checked' => $checked,
+            'updated' => $updated,
+            'fallback' => $fallback,
+        ];
+    }
+
     private function resolveFromDatabaseAliases(string $haystack): ?JenisBarang
     {
         if (! Schema::hasTable('jenis_barang_aliases')) {
@@ -108,6 +161,7 @@ class ProductTypeClassifier
         $aliases = JenisBarangAlias::query()
             ->with('jenisBarang')
             ->where('is_active', true)
+            ->whereHas('jenisBarang', fn ($query) => $query->active())
             ->orderBy('priority')
             ->get();
 

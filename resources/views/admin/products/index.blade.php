@@ -107,7 +107,7 @@
                 </a>
             </div>
 
-            <form method="GET" action="{{ route('admin.products.index') }}" class="mt-5 grid gap-3 md:grid-cols-[1fr_220px_auto]">
+            <form method="GET" action="{{ route('admin.products.index') }}" class="mt-5 grid gap-3 md:grid-cols-[1fr_190px_190px_190px_auto]">
                 <input
                     type="search"
                     name="search"
@@ -115,6 +115,18 @@
                     placeholder="Cari nama produk, pelaku usaha, No SPPIRT..."
                     class="rounded-lg border-slate-300 text-sm focus:border-slate-900 focus:ring-slate-900"
                 >
+                <select name="kecamatan_id" class="rounded-lg border-slate-300 text-sm focus:border-slate-900 focus:ring-slate-900">
+                    <option value="">Semua Kecamatan</option>
+                    @foreach ($kecamatans as $kecamatan)
+                        <option value="{{ $kecamatan->id }}" @selected((string) request('kecamatan_id') === (string) $kecamatan->id)>{{ $kecamatan->nama_kecamatan }}</option>
+                    @endforeach
+                </select>
+                <select name="jenis_barang_id" class="rounded-lg border-slate-300 text-sm focus:border-slate-900 focus:ring-slate-900">
+                    <option value="">Semua Jenis</option>
+                    @foreach ($jenisBarangs as $jenisBarang)
+                        <option value="{{ $jenisBarang->id }}" @selected((string) request('jenis_barang_id') === (string) $jenisBarang->id)>{{ $jenisBarang->nama_jenis }}</option>
+                    @endforeach
+                </select>
                 <select name="status" class="rounded-lg border-slate-300 text-sm focus:border-slate-900 focus:ring-slate-900">
                     <option value="">Semua Status</option>
                     <option value="verified" @selected(request('status') === 'verified')>Terverifikasi</option>
@@ -142,7 +154,10 @@
                             <tr class="border-t border-slate-200 align-top">
                                 <td class="px-4 py-3">
                                     <div class="font-semibold text-slate-900">{{ $product->nama_branding }}</div>
-                                    <div class="mt-1 text-xs text-slate-500">{{ $product->kategori_pangan ?? $product->jenis_pangan ?? '-' }}</div>
+                                    <div class="mt-1 text-xs text-slate-500">
+                                        {{ $product->jenisBarang?->nama_jenis ?? 'Belum diklasifikasi' }}
+                                        <span class="text-slate-400">/ {{ $product->jenis_pangan ?? $product->kategori_pangan ?? '-' }}</span>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-slate-700">{{ $product->no_sppirt }}</td>
                                 <td class="px-4 py-3 text-slate-700">

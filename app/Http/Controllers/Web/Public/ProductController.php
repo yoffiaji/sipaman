@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\JenisBarang;
 use App\Models\Kecamatan;
 use App\Models\Produk;
 use Illuminate\Http\Request;
@@ -15,7 +16,8 @@ class ProductController extends Controller
         $products = Produk::verified()
             ->with(['kecamatan', 'jenisBarang', 'gambarUtama'])
             ->search($request->query('search'))
-            ->when($request->filled('kecamatan_id'), fn ($query) => $query->where('kecamatan_id', $request->query('kecamatan_id')))
+            ->byKecamatan($request->query('kecamatan_id'))
+            ->byJenisBarang($request->query('jenis_barang_id'))
             ->when($request->filled('kecamatan'), function ($query) use ($request) {
                 $keyword = $request->query('kecamatan');
                 $query->where(function ($q) use ($keyword) {
@@ -28,8 +30,9 @@ class ProductController extends Controller
             ->withQueryString();
 
         $kecamatans = Kecamatan::orderBy('nama_kecamatan')->get();
+        $jenisBarangs = JenisBarang::active()->orderBy('nama_jenis')->get();
 
-        return view('public.products.index', compact('products', 'kecamatans'));
+        return view('public.products.index', compact('products', 'kecamatans', 'jenisBarangs'));
     }
 
     public function show(Produk $produk): View

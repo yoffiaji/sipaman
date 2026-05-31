@@ -17,8 +17,21 @@ class ProductController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'kecamatan_id' => ['nullable', 'integer', 'exists:kecamatans,id'],
+            'jenis_barang_id' => ['nullable', 'integer', 'exists:jenis_barangs,id'],
+            'status' => ['nullable', 'in:verified,unverified'],
+            'is_verified' => ['nullable', 'boolean'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
         $products = Produk::with(['kecamatan', 'jenisBarang', 'gambarUtama', 'verifikasi.verifikator', 'commitmentStatus'])
             ->search($request->query('search'))
+            ->byKecamatan($request->query('kecamatan_id'))
+            ->byJenisBarang($request->query('jenis_barang_id'))
+            ->when($request->query('status') === 'verified', fn ($query) => $query->where('is_verified', true))
+            ->when($request->query('status') === 'unverified', fn ($query) => $query->where('is_verified', false))
             ->when($request->has('is_verified'), fn ($query) => $query->where('is_verified', filter_var($request->query('is_verified'), FILTER_VALIDATE_BOOLEAN)))
             ->latest()
             ->paginate($request->query('per_page', 20));

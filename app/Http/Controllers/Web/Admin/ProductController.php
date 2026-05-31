@@ -12,8 +12,8 @@ use App\Models\Produk;
 use App\Traits\LogsAuditTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
 class ProductController extends Controller
 {
@@ -23,6 +23,8 @@ class ProductController extends Controller
     {
         $products = Produk::with(['kecamatan', 'jenisBarang', 'gambarUtama', 'commitmentStatus'])
             ->search($request->query('search'))
+            ->byKecamatan($request->query('kecamatan_id'))
+            ->byJenisBarang($request->query('jenis_barang_id'))
             ->when($request->query('status') === 'verified', fn ($query) => $query->where('is_verified', true))
             ->when($request->query('status') === 'unverified', fn ($query) => $query->where('is_verified', false))
             ->latest()
@@ -43,7 +45,10 @@ class ProductController extends Controller
             ->latest('imported_at')
             ->first();
 
-        return view('admin.products.index', compact('products', 'stats', 'lastImport'));
+        $kecamatans = Kecamatan::orderBy('nama_kecamatan')->get();
+        $jenisBarangs = JenisBarang::active()->orderBy('nama_jenis')->get();
+
+        return view('admin.products.index', compact('products', 'stats', 'lastImport', 'kecamatans', 'jenisBarangs'));
     }
 
     public function create(): View
@@ -62,7 +67,7 @@ class ProductController extends Controller
 
     public function show(Produk $produk): View
     {
-        $produk->load(['kecamatan', 'jenisBarang', 'gambarProduks', 'verifikasi.verifikator', 'commitmentStatus']);
+        $produk->load(['kecamatan', 'jenisBarang', 'gambarProduks', 'gambarUtama', 'verifikasi.verifikator', 'commitmentStatus']);
 
         return view('admin.products.show', compact('produk'));
     }
@@ -99,10 +104,7 @@ class ProductController extends Controller
     {
         return [
             'kecamatans' => Kecamatan::orderBy('nama_kecamatan')->get(),
-            'jenisBarangs' => JenisBarang::query()
-                ->when(\Illuminate\Support\Facades\Schema::hasColumn('jenis_barangs', 'is_active'), fn ($query) => $query->where('is_active', true))
-                ->orderBy('nama_jenis')
-                ->get(),
+            'jenisBarangs' => JenisBarang::active()->orderBy('nama_jenis')->get(),
         ];
     }
 }
