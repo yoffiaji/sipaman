@@ -1,43 +1,64 @@
-# AGENTS.md — Laravel PIRT Karanganyar Project Guide
+# AGENTS.md — SIPAMAN Laravel Project Guide
 
-This file is the coding guide for AI agents working in this repository. It is **not** a task prompt and must not contain temporary case instructions. Use it to understand the project structure, functional flow, file responsibilities, and safe coding rules before editing code.
+This file is the coding guide for AI agents working in this repository. It is **not** a one-time task prompt. Use it to understand the project structure, current code reality, business rules, file responsibilities, and verification requirements before editing code.
+
+This guide was re-verified against the current uploaded code snapshot containing:
+
+- `app/`
+- `routes/`
+- `resources/`
+- `database/`
+- `composer.json`
+
+Important principle: **separate current implementation from accepted target rules**. Some accepted business rules below are not fully implemented yet. If a rule is listed as a target/pending gap, do not claim it is already implemented until the code has actually been changed and verified.
+
+---
 
 ## 1. Project overview
 
-This project is a Laravel-based PIRT information system for Karanganyar. It serves three main areas:
+SIPAMAN stands for **Sistem Informasi Pangan Aman**. It is a Laravel-based information system for PIRT products in Karanganyar.
+
+The system has three main areas:
 
 1. **Public website**
    - Public visitors can view verified PIRT products.
    - Public visitors can browse UMKM/pelaku usaha.
-   - Public landing page content comes from the database.
+   - Public landing page content is loaded from the database.
 
 2. **User / pelaku usaha area**
-   - Product owners can log in using NIB or email.
-   - User accounts are usually created by the import/verification flow or by admin/super admin.
-   - Users can manage limited product display data such as store/product details and product images.
+   - Product owner accounts are linked to verified PIRT products.
+   - User accounts may be created automatically from Status Pemenuhan Komitmen import when a product becomes verified and has NIB.
+   - Target business rule: user/pelaku usaha uses **NIB** as identity/login identifier, not email.
+   - Target business rule: user can only edit limited display/support fields, not official PIRT data.
 
 3. **Admin / super admin area**
-   - Admins manage imported PIRT product data, verification status, product categories, landing page content, and logs.
-   - Super admins additionally manage users, system settings, and audit trails.
+   - Admin manages operational data: products, imports, verification, jenis barang, product images, landing page content, activity/import monitoring.
+   - Super admin additionally manages admin accounts, system settings, and audit trails.
 
-The codebase uses both Blade web controllers and JSON API controllers. When adding logic, keep business rules reusable so the web and API paths do not drift apart.
+The codebase uses both Blade web controllers and JSON API controllers. When adding or changing logic, keep business rules reusable so web and API behavior do not drift apart.
+
+---
 
 ## 2. Tech stack and commands
 
 ### Backend
 
+Current `composer.json` requires:
+
 - PHP `^8.3`
-- Laravel `^13.0`
-- Laravel Sanctum
+- Laravel Framework `^13.0`
+- Laravel Sanctum `^4.3`
+- Laravel Tinker `^3.0`
 - Maatwebsite/Laravel-Excel `^3.1`
-- Eloquent models
-- Blade views
+
+Dev dependencies include Laravel Pail, Pint, Mockery, Collision, and PHPUnit.
 
 ### Frontend asset pipeline
 
 - Vite
-- Tailwind CSS v4
-- `laravel-vite-plugin`
+- Tailwind CSS
+- Blade views
+- `laravel-vite-plugin` is expected in the full frontend package setup.
 
 ### Important commands
 
@@ -59,289 +80,206 @@ Development command from `composer.json`:
 composer run dev
 ```
 
-The `dev` script runs Laravel server, queue listener, log pail, and Vite together. Do not change this script unless the task explicitly requires development tooling changes.
+Current `composer run dev` runs Laravel server, queue listener, Laravel Pail, and Vite together. Do not change this script unless the task explicitly requires development tooling changes.
 
-## 3. Golden rules for agents
+---
 
-1. Inspect routes, controller, request, service, model, migration, seeder, and Blade/API response before editing a feature.
-2. Do not guess file responsibilities. Use the file map in this document first.
-3. Keep controllers thin. Put business logic in services and validation in FormRequests.
-4. Reuse existing services. Do not duplicate logic between web controllers and API controllers.
-5. Keep role authorization enforced in routes/middleware/policies, not only by hiding UI buttons.
-6. Do not mass-rename routes, tables, model classes, namespaces, or column names just because visible branding changes.
-7. When schema changes, update migration, model fillable/casts/relations, FormRequest, service/controller, seeders, views/API output, and tests/checks together.
-8. Keep admin-facing messages in clear Indonesian.
-9. Never log raw passwords, tokens, session values, `.env` secrets, or sensitive credentials.
-10. Before deleting any file, prove it is unused by checking routes, imports, references, views, and API clients.
-11. Do not place task-specific cases/prompts in this file. Put task-specific instructions in the prompt, not in AGENTS.md.
+## 3. Mandatory workflow for every coding agent
 
-## 4. Main functional flows
+Before editing code:
 
-### 4.1 Public website flow
+1. Read this `AGENTS.md` completely.
+2. Inspect the exact related files first: route, controller, request, service, model, migration, seeder, Blade, API response, and tests/checklist.
+3. State a short implementation plan before changing code.
+4. Identify whether the task touches web only, API only, or both.
+5. Identify whether the change touches schema, storage, imports, authentication, authorization, or public-facing content.
 
-Routes are in `routes/web.php`:
+While editing code:
 
-- `/` → public home page.
-- `/products` → public verified product catalog.
-- `/products/{produk}` → public product detail, only for verified products.
-- `/umkm` → public UMKM list.
-- `/umkm/{namaPelakuUsaha}` → public UMKM product list.
+1. Keep controllers thin.
+2. Put business logic in services/support classes.
+3. Put validation in FormRequests where appropriate.
+4. Use existing services before creating new ones.
+5. Do not duplicate logic between web and API controllers.
+6. Keep role authorization enforced by route middleware/policy/controller checks, not only hidden buttons in Blade.
+7. Keep Indonesian UI messages clear and non-technical for admin/pemerintahan users.
+8. Never log raw passwords, password hashes, API keys, tokens, session values, `.env` secrets, or full uploaded file contents.
+9. Do not mass-rename tables, columns, routes, model classes, namespaces, or controller classes unless explicitly requested and all references are updated.
+10. Do not delete files until references are checked in routes, imports, views, API clients, and search results.
 
-Main files:
+After editing code:
 
-- `app/Http/Controllers/Web/Public/HomeController.php`
-  - Loads `LandingPageContent` by `section_key`.
-  - Loads latest verified products with `kecamatan` and `gambarUtama`.
-  - Returns `resources/views/public/home.blade.php`.
+1. Run the relevant commands/tests when possible.
+2. Review the diff and confirm no unrelated changes were made.
+3. Verify web and API rules remain consistent when both paths exist.
+4. Report exactly what was changed, what was tested, and what was not tested.
 
-- `app/Http/Controllers/Web/Public/ProductController.php`
-  - Lists verified products with search and filter.
-  - Uses `Produk::verified()` and `Produk::search()`.
-  - Blocks public detail access for unverified products.
+---
 
-- `app/Http/Controllers/Web/Public/UmkmController.php`
-  - Groups verified products by `nama_pelaku_usaha`.
-  - Shows UMKM detail based on slug-like URL converted back to name.
+## 4. Definition of Done / Verification Gate
 
-Public views:
+Every task must pass this verification gate before the agent reports completion.
 
-- `resources/views/layouts/public.blade.php`
-  - Public base layout.
-- `resources/views/partials/public/navbar.blade.php`
-  - Public navigation.
-- `resources/views/partials/public/hero.blade.php`
-  - Public hero section.
-- `resources/views/partials/public/footer.blade.php`
-  - Public footer.
-- `resources/views/public/home.blade.php`
-  - Public landing/home page.
-- `resources/views/public/products/index.blade.php`
-  - Public product catalog.
-- `resources/views/public/products/show.blade.php`
-  - Public product detail.
-- `resources/views/public/umkm/index.blade.php`
-  - Public UMKM list.
-- `resources/views/public/umkm/show.blade.php`
-  - Public UMKM detail.
+### 4.1 Required self-review
 
-### 4.2 Authentication flow
+Check:
 
-Web auth routes are in `routes/web.php`:
+1. The change follows current project structure.
+2. The change matches the accepted business rule.
+3. Controllers remain thin.
+4. Validation is not hidden only in Blade.
+5. Authorization is not hidden only by UI.
+6. Web and API behavior are aligned when they share a feature.
+7. Schema changes update migration, model fillable/casts/relations, FormRequest, service/controller, Blade/API response, seeder, and manual/test checklist.
+8. Storage changes delete or preserve files intentionally.
+9. Logs do not contain secrets or sensitive credential data.
+10. Admin-facing text is understandable for non-IT staff.
+11. The change does not break route names used by Blade/API.
+12. The change does not introduce duplicate logic where a service already exists.
 
-- `GET /login`
-- `POST /login`
-- `POST /logout`
+### 4.2 Commands to run when relevant
+
+Run these when the task touches backend/schema/API:
+
+```bash
+php artisan test
+```
+
+Run this when Blade/assets/frontend styling may be affected:
+
+```bash
+npm run build
+```
+
+Run this when migrations/seeders change and a fresh local database is acceptable:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Run this when storage symlinks are needed for image display:
+
+```bash
+php artisan storage:link
+```
+
+If a command cannot be run, state the exact reason. Do not claim it passed.
+
+### 4.3 Required final report format
+
+When finishing a coding task, report:
+
+1. Summary of changes.
+2. Files changed.
+3. Why each change was needed.
+4. Migration/seed impact.
+5. Commands/tests actually run and results.
+6. Manual checks performed.
+7. Remaining risks or follow-up.
+
+Never claim UI was checked unless it was actually opened or can only be reasoned from code with that limitation stated.
+
+---
+
+## 5. Current route map
+
+### 5.1 Web routes: `routes/web.php`
+
+Public:
+
+- `GET /` → `Web/Public/HomeController@index`
+- `GET /products` → `Web/Public/ProductController@index`
+- `GET /products/{produk}` → `Web/Public/ProductController@show`
+- `GET /umkm` → `Web/Public/UmkmController@index`
+- `GET /umkm/{namaPelakuUsaha}` → `Web/Public/UmkmController@show`
+
+Auth:
+
+- `GET /login` → `Web/Auth/AuthenticatedSessionController@create`
+- `POST /login` → `Web/Auth/AuthenticatedSessionController@store`
+- `POST /logout` → `Web/Auth/AuthenticatedSessionController@destroy`
 - `/register` redirects to `/login`
 
-Main file:
+User routes use middleware:
 
-- `app/Http/Controllers/Web/Auth/AuthenticatedSessionController.php`
-  - Login uses a single `identifier` field.
-  - Admin/super admin usually log in with email.
-  - Pelaku usaha/user can log in with NIB or email.
-  - If password is null, `needsPasswordSetup()` blocks login and tells the user to contact admin.
-  - Inactive/locked accounts cannot log in.
-  - Redirects:
-    - `admin` and `super_admin` → admin dashboard.
-    - `user` → user dashboard.
-    - unknown role → home.
+```php
+['auth', 'role:user']
+```
 
-Auth views:
+Prefix/name:
 
-- `resources/views/layouts/auth.blade.php`
-- `resources/views/auth/login.blade.php`
-- `resources/views/auth/register.blade.php`
+```text
+/user
+user.*
+```
 
-Do not re-enable public self-registration unless the task explicitly asks for it. Current web registration is intentionally redirected to login.
-
-### 4.3 User / pelaku usaha flow
-
-Web routes:
+Current user routes:
 
 - `/user/dashboard`
 - `/user/account`
+- `/user/account/nama`
+- `/user/account/password`
 - `/user/products/setting`
-- product image upload, set primary image, and delete image inside the user product settings prefix.
+- `/user/products/setting/{id}/edit`
+- `/user/products/setting/{id}`
+- `/user/products/setting/{id}/gambar`
+- `/user/products/setting/{produkId}/gambar/{gambarId}/utama`
+- `/user/products/setting/{produkId}/gambar/{gambarId}` delete
 
-Main files:
-
-- `app/Http/Controllers/Web/User/DashboardController.php`
-  - User dashboard.
-
-- `app/Http/Controllers/Web/User/AccountController.php`
-  - Updates account name and password.
-
-- `app/Http/Controllers/Web/User/ProductSettingController.php`
-  - Lists products owned by the logged-in user.
-  - Allows limited product display/settings updates.
-  - Handles product image upload, primary image selection, and deletion.
-
-User views:
-
-- `resources/views/user/dashboard.blade.php`
-- `resources/views/user/settings/index.blade.php`
-- `resources/views/user/products/setting.blade.php`
-- `resources/views/user/products/setting-edit.blade.php`
-
-Rules:
-
-- Users must only access their own products.
-- Do not let users edit official PIRT fields unless the task explicitly changes the business policy.
-- Product ownership uses `produks.user_id`.
-- Product owner accounts may be created automatically from status commitment import when NIB exists.
-
-### 4.4 Admin operational flow
-
-Admin web routes use middleware:
+Admin routes use middleware:
 
 ```php
 ['auth', 'role:admin,super_admin']
 ```
 
-Admin prefix/name:
+Prefix/name:
 
 ```text
 /admin
 admin.*
 ```
 
-Admin features:
+Current admin routes:
 
 - Dashboard
-- Products
+- `admin.products.*` resource
 - Rekap PIRT import
-- Product images
-- Verification
-- Status Pemenuhan Komitmen import
-- Jenis Barang
-- Landing Page
-- Log Aktivitas
+- Product image upload/delete under product detail
+- Verifications index/import/edit/update
+- `admin.jenis-barang.*` resource except show
+- Landing page index/update
+- Activity logs
+- Import logs
 
-Main files:
-
-- `app/Http/Controllers/Web/Admin/DashboardController.php`
-  - Uses `DashboardStatisticService`.
-  - Shows product/import/verification summary.
-
-- `app/Http/Controllers/Web/Admin/ProductController.php`
-  - Product CRUD for admin.
-  - Uses `StoreProductRequest` and `UpdateProductRequest`.
-  - Logs create/update/delete with `LogsAuditTrail`.
-  - Deletes product images from storage when product is deleted.
-
-- `app/Http/Controllers/Web/Admin/ProductImportController.php`
-  - Handles Rekap Data PIRT import.
-  - Uses `ImportProductRequest`.
-  - Delegates to `ProductImportService::importRekapPirt()`.
-
-- `app/Http/Controllers/Web/Admin/ProductImageController.php`
-  - Handles admin product image upload/delete.
-  - Delegates to `ProductImageService`.
-
-- `app/Http/Controllers/Web/Admin/ProductVerificationController.php`
-  - Lists verification tabs: all, verified, not yet, in progress.
-  - Handles Status Pemenuhan Komitmen import.
-  - Delegates import to `ProductImportService::importCommitmentStatus()`.
-  - Delegates manual verification to `ProductVerificationService`.
-  - Logs verification/import actions.
-
-- `app/Http/Controllers/Web/Admin/JenisBarangController.php`
-  - CRUD for product type/category table `jenis_barangs`.
-
-- `app/Http/Controllers/Web/Admin/LandingPageController.php`
-  - Lists and updates fixed landing page content sections.
-  - Uses `UpdateLandingPageRequest`.
-  - Logs changes to `landing_page_contents`.
-
-- `app/Http/Controllers/Web/Admin/LogController.php`
-  - Shows activity logs.
-
-Admin views:
-
-- `resources/views/layouts/admin.blade.php`
-  - Main admin layout.
-  - Includes sidebar, topbar, breadcrumb, and main content.
-  - Contains the current admin theme styling and utility remaps.
-
-- `resources/views/partials/admin/sidebar.blade.php`
-  - Builds the sidebar menu.
-  - Shows normal admin items for admin and super admin.
-  - Adds super-admin-only items only when role is `super_admin`.
-
-- `resources/views/partials/admin/topbar.blade.php`
-- `resources/views/partials/admin/breadcrumb.blade.php`
-- `resources/views/admin/dashboard.blade.php`
-- `resources/views/admin/products/*.blade.php`
-- `resources/views/admin/verifications/*.blade.php`
-- `resources/views/admin/jenis-barang/*.blade.php`
-- `resources/views/admin/landing-page/index.blade.php`
-- `resources/views/admin/logs/index.blade.php`
-
-Rules:
-
-- Admin is operational, not fully privileged.
-- Super-admin-only features must not be moved into the `/admin` route group unless the middleware/policy still blocks normal admin access.
-- Sidebar changes must match route access rules.
-- UI labels should be understandable for non-technical staff.
-
-### 4.5 Super admin flow
-
-Super admin web routes use middleware:
+Super admin routes use middleware:
 
 ```php
 ['auth', 'role:super_admin']
 ```
 
-Super admin prefix/name:
+Prefix/name:
 
 ```text
 /super-admin
 super-admin.*
 ```
 
-Main files:
+Current super admin routes:
 
-- `app/Http/Controllers/Web/SuperAdmin/UserManagementController.php`
-  - Manages user/admin accounts.
-  - Does not allow editing/deleting the current logged-in account from this page.
-  - Does not allow editing/deleting super admin accounts through regular user management.
-  - Uses role names `user` and `admin` for assignable roles.
-  - Logs create/update/delete.
+- `super-admin.users.*` resource except show
+- `super-admin.settings.index/update`
+- `super-admin.audit-trails.index`
 
-- `app/Http/Controllers/Web/SuperAdmin/SystemSettingController.php`
-  - Lists and updates system settings.
-  - Uses `UpdateSystemSettingRequest`.
-  - Logs setting updates.
-
-- `app/Http/Controllers/Web/SuperAdmin/AuditTrailController.php`
-  - Shows audit trail records.
-
-Super admin views:
-
-- `resources/views/super-admin/users/index.blade.php`
-- `resources/views/super-admin/users/create.blade.php`
-- `resources/views/super-admin/users/edit.blade.php`
-- `resources/views/super-admin/users/_form.blade.php`
-- `resources/views/super-admin/settings/index.blade.php`
-- `resources/views/super-admin/audit-trails/index.blade.php`
-
-Rules:
-
-- Normal admin must not access super admin routes by direct URL.
-- Normal admin must not see super admin menu items.
-- User management must not accidentally allow creating another super admin unless the task explicitly requests it and the security implications are handled.
-
-### 4.6 JSON API flow
-
-API routes are in `routes/api.php`.
+### 5.2 API routes: `routes/api.php`
 
 Auth API:
 
-- `POST /api/auth/register`
+- `POST /api/auth/register` returns 403 because self-registration is disabled.
 - `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `POST /api/auth/update-profile`
+- Protected by Sanctum:
+  - `POST /api/auth/logout`
+  - `GET /api/auth/me`
+  - `POST /api/auth/update-profile`
 
 Public API:
 
@@ -350,280 +288,156 @@ Public API:
 - `GET /api/produk/{produk}`
 - `GET /api/landing-page`
 
-User API:
+User API uses middleware:
+
+```php
+['auth:sanctum', 'role:user']
+```
+
+Current user API routes:
 
 - `GET /api/user/dashboard`
 - `GET /api/user/produk`
 - `GET /api/user/produk/{produk}`
 - `PATCH /api/user/produk/{produk}`
-- image upload/delete for user products.
+- `POST /api/user/produk/{produk}/images`
+- `DELETE /api/user/produk/{produk}/images`
 
-Admin API:
+Admin API uses middleware:
+
+```php
+['auth:sanctum', 'role:admin,super_admin']
+```
+
+Current admin API routes:
 
 - `apiResource /api/admin/produk`
-- Rekap PIRT import.
-- Status Komitmen import.
-- Product verification update/reject.
-- Admin product image upload/delete.
-- Landing page index/update.
+- Rekap PIRT import
+- Status Komitmen import
+- Verification update/reject
+- Product image upload/delete
+- Landing page admin index/update
 
-Super admin API:
+Super admin API uses middleware:
+
+```php
+['auth:sanctum', 'role:super_admin']
+```
+
+Current super admin API routes:
 
 - `apiResource /api/super-admin/users`
-- `apiResource /api/super-admin/settings`
-- audit/activity logs.
+- `apiResource /api/super-admin/settings` index/update only
+- audit trail list
+- activity log list
 
-API controller files:
+---
 
-- `app/Http/Controllers/Api/AuthController.php`
-- `app/Http/Controllers/Api/ProdukController.php`
-- `app/Http/Controllers/Api/User/DashboardController.php`
-- `app/Http/Controllers/Api/User/ProductController.php`
-- `app/Http/Controllers/Api/User/ProductImageController.php`
-- `app/Http/Controllers/Api/Admin/ProductController.php`
-- `app/Http/Controllers/Api/Admin/ProductImportController.php`
-- `app/Http/Controllers/Api/Admin/ProductVerificationController.php`
-- `app/Http/Controllers/Api/Admin/ProductImageController.php`
-- `app/Http/Controllers/Api/Admin/LandingPageController.php`
-- `app/Http/Controllers/Api/SuperAdmin/UserManagementController.php`
-- `app/Http/Controllers/Api/SuperAdmin/SystemSettingController.php`
-- `app/Http/Controllers/Api/SuperAdmin/AuditTrailController.php`
+## 6. Authentication and user identity rules
 
-Rules:
+### 6.1 Current implementation
 
-- Keep API response structure consistent.
-- Do not return Blade redirects from API controllers.
-- Do not put business logic only in API controllers if web controllers need the same behavior.
-- Use Sanctum for protected API routes.
-- Use the existing `role` middleware for API role checks.
+Current web and API login use a single `identifier` field and search both:
 
-## 5. Import and verification flows
+- `users.email`
+- `users.nib`
 
-### 5.1 Rekap Data PIRT import
+Current code allows admin/super admin to use email and user/pelaku usaha to use NIB. However, because the query checks both fields for every role, role-based enforcement is not yet strict.
 
-Main route:
+The current login flow blocks accounts with `password = null` using `needsPasswordSetup()` and blocks accounts with `status_akun` other than `aktif`.
 
-- Web: `POST /admin/products/import/rekap-pirt`
-- API: `POST /api/admin/produk/import/rekap-pirt`
+### 6.2 Accepted target rule
 
-Main files:
+- Role `user` / pelaku usaha must use **NIB** as login identity.
+- Email should not be used, displayed, or edited for role `user`.
+- Role `admin` and `super_admin` may continue using email for login.
+- Do not drop the `email` column globally because admin/super admin still need it.
+- User-facing login errors should say **NIB/password** for user flows, or use neutral wording that does not confuse pelaku usaha.
 
-- `app/Http/Requests/Admin/ImportProductRequest.php`
-  - Validates uploaded spreadsheet.
+### 6.3 Pending gap in current code
 
-- `app/Http/Controllers/Web/Admin/ProductImportController.php`
-  - Receives web upload.
-  - Calls `ProductImportService`.
+Current code still has these gaps:
 
-- `app/Http/Controllers/Api/Admin/ProductImportController.php`
-  - Receives API upload.
-  - Calls `ProductImportService`.
+- Web login error says `Email/NIB atau password salah.`
+- API login error says `Email/NIB atau password salah.`
+- API `formatUser()` returns `email` for all roles.
+- API `updateProfile()` allows `email` update.
+- User account page displays email.
+- User account page allows updating `nama`.
+- Current UserSeeder still seeds a role `user` with email.
 
-- `app/Services/ProductImportService.php`
-  - Shared import orchestrator.
-  - Runs import in a transaction.
-  - Creates an `ImportLog`.
-  - Returns import summary and failure details.
+When changing auth/profile behavior, update web, API, Blade, validation, and tests/checklist together.
 
-- `app/Imports/ProdukImport.php`
-  - Reads Rekap Data PIRT rows starting from row 5.
-  - Maps spreadsheet columns:
-    - B: No SPPIRT
-    - C: Nama Branding Produk
-    - D: Kategori Pangan
-    - E: Jenis Pangan
-    - F: Kemasan
-    - G: Cara Penyimpanan
-    - H: NIB
-    - I: Wilayah
-    - J: Tanggal Pengajuan
-    - K: Status OSS
-    - L: No HP
-    - M: Nama Pelaku Usaha
-    - N: Alamat
-  - Creates/updates `produks` by `no_sppirt`.
-  - Creates `jenis_barangs` from `jenis_pangan` when needed.
-  - New products default to `is_verified = false`.
-  - Existing product verification status must not be reset by re-import.
+---
 
-Rules:
-
-- Preserve row-level failure reporting.
-- Invalid rows must be skipped with clear reasons.
-- Do not reset `is_verified` for products that already exist.
-- Keep import logic inside `app/Imports` and `ProductImportService`, not inside controllers.
-
-### 5.2 Status Pemenuhan Komitmen import
-
-Main route:
-
-- Web: `POST /admin/verifications/import`
-- API: `POST /api/admin/produk/import/status-komitmen`
+## 7. Public website flow
 
 Main files:
 
-- `app/Http/Requests/Admin/ImportCommitmentStatusRequest.php`
-  - Validates uploaded spreadsheet.
-
-- `app/Http/Controllers/Web/Admin/ProductVerificationController.php`
-  - Receives web upload.
-  - Calls `ProductImportService::importCommitmentStatus()`.
-
-- `app/Http/Controllers/Api/Admin/ProductVerificationController.php`
-  - Receives API upload.
-  - Calls shared service.
-
-- `app/Imports/PirtCommitmentStatusImport.php`
-  - Reads status commitment rows starting from row 2.
-  - Maps spreadsheet columns:
-    - B: No SPPIRT
-    - C: Provinsi
-    - D: Kab/Kota
-    - E: Nama Pelaku Usaha
-    - F: Alamat Usaha
-    - G: Phone
-    - H: Terdaftar
-    - I: NIB
-    - J: Verifikasi Produk
-    - K: Verifikasi Label
-    - L: PKP
-    - M: CPPOB
-    - N: Status Pemenuhan Komitmen
-  - Writes to `pirt_commitment_statuses`.
-  - Links status rows to `produks` by `no_sppirt`.
-  - Updates `verifikasi_produks`.
-  - Updates `produks.is_verified`.
-  - If a product becomes verified and has NIB, creates/links a `user` account if needed.
+- `app/Http/Controllers/Web/Public/HomeController.php`
+- `app/Http/Controllers/Web/Public/ProductController.php`
+- `app/Http/Controllers/Web/Public/UmkmController.php`
+- `resources/views/public/home.blade.php`
+- `resources/views/public/products/index.blade.php`
+- `resources/views/public/products/show.blade.php`
+- `resources/views/public/umkm/index.blade.php`
+- `resources/views/public/umkm/show.blade.php`
+- `resources/views/layouts/public.blade.php`
+- `resources/views/partials/public/navbar.blade.php`
+- `resources/views/partials/public/hero.blade.php`
+- `resources/views/partials/public/footer.blade.php`
 
 Rules:
 
-- Status file should be imported after Rekap Data PIRT so products already exist.
-- Missing `no_sppirt` must fail the row.
-- Unknown `no_sppirt` must fail the row with a clear message.
-- Automatically created pelaku usaha accounts may have null email and null password; they cannot log in until admin sets credentials.
-- Keep NIB identity consistent; do not create duplicate users for the same NIB.
+- Public catalog must show only `Produk::verified()`.
+- Public product detail must abort 404 when product is not verified.
+- Public product cards should tolerate missing images.
+- Public product filters must use normalized relational fields when available, not raw imported strings.
 
-### 5.3 Manual verification
+Current known issue:
 
-Main files:
+- `resources/views/public/products/index.blade.php` uses `$jenisBarangs` for a `jenis_barang_id` dropdown.
+- Current `Web/Public/ProductController@index` only passes `$products` and `$kecamatans`; it does not pass `$jenisBarangs` and does not apply `byJenisBarang()`.
+- API catalog already supports `jenis_barang_id` via `Api/ProdukController`.
 
-- `app/Http/Requests/Admin/UpdateProductVerificationRequest.php`
-- `app/Services/ProductVerificationService.php`
-- `app/Models/VerifikasiProduk.php`
-- `app/Models/Produk.php`
+Target fix:
 
-Manual verification fields:
+- Add `JenisBarang` retrieval to web public product index.
+- Apply `->byJenisBarang($request->query('jenis_barang_id'))`.
+- Keep public web and public API filter behavior aligned.
 
-- `verifikasi_produk`
-- `verifikasi_label`
-- `pkp`
-- `cppob_pemeriksaan_sarana`
-- `catatan`
+---
 
-Rules:
+## 8. Product and PIRT data rules
 
-- `ProductVerificationService::update()` is the source of truth for manual verification updates.
-- Verification status should update both `verifikasi_produks` and `produks.is_verified`.
-- `tanggal_verifikasi` and `masa_berlaku_pirt` are set when product becomes verified.
-- Rejection should clear all checklist booleans and save optional note.
+`Produk` is the central PIRT product model.
 
-## 6. Database model map
+Important fields:
 
-### `roles`
+- `no_sppirt`
+- `nama_branding`
+- `kategori_pangan`
+- `jenis_pangan`
+- `kemasan`
+- `cara_penyimpanan`
+- `wilayah`
+- `kecamatan_id`
+- `jenis_barang_id`
+- `nama_pelaku_usaha`
+- `alamat`
+- `nib`
+- `no_hp`
+- `nama_toko`
+- `alamat_toko`
+- `harga`
+- `deskripsi`
+- `tanggal_pengajuan`
+- `tanggal_verifikasi`
+- `masa_berlaku_pirt`
+- `status_oss`
+- `is_verified`
 
-Migration:
-
-- `database/migrations/2024_01_01_000001_create_roles_table.php`
-
-Model:
-
-- `app/Models/Role.php`
-
-Purpose:
-
-- Stores role names: `user`, `admin`, `super_admin`.
-- Related to users.
-
-### `users`
-
-Migration:
-
-- `database/migrations/2024_01_01_000002_create_users_table.php`
-- `database/migrations/2026_05_18_120000_add_nib_and_nullable_credentials_to_users_table.php`
-
-Model:
-
-- `app/Models/User.php`
-
-Purpose:
-
-- Stores admins, super admins, and pelaku usaha accounts.
-- Supports nullable `email` and `password` after later migration.
-- Supports unique nullable `nib`.
-- `password` cast is hashed.
-- Has helpers:
-  - `hasRole()`
-  - `isActive()`
-  - `needsPasswordSetup()`
-
-Relations:
-
-- `role`
-- `auditTrails`
-- `activityLogs`
-- `importLogs`
-- `produks`
-
-### `kecamatans`
-
-Migration:
-
-- `database/migrations/2024_01_01_000003_create_kecamatans_table.php`
-
-Model:
-
-- `app/Models/Kecamatan.php`
-
-Purpose:
-
-- Stores district data for Karanganyar.
-- Related to products.
-
-### `jenis_barangs`
-
-Migration:
-
-- `database/migrations/2024_01_01_000004_create_jenis_barangs_table.php`
-
-Model:
-
-- `app/Models/JenisBarang.php`
-
-Purpose:
-
-- Stores product type/category.
-- Related to products.
-- Rekap PIRT import can create records from spreadsheet `jenis_pangan`.
-
-### `produks`
-
-Migration:
-
-- `database/migrations/2024_01_01_000005_create_produks_table.php`
-- `database/migrations/2026_05_18_000013_widen_produk_text_columns.php`
-- indexed by `database/migrations/2026_05_12_100001_add_indexes_for_performance.php`
-
-Model:
-
-- `app/Models/Produk.php`
-
-Purpose:
-
-- Main PIRT product data.
-- Public catalog only shows records where `is_verified = true`.
-- Unique key is `no_sppirt`.
-
-Important relations:
+Important relationships:
 
 - `user`
 - `kecamatan`
@@ -641,537 +455,445 @@ Important scopes:
 - `ownedBy`
 - `search`
 
-### `gambar_produks`
+### 8.1 Official/legal data vs display data
 
-Migration:
+Official PIRT data comes from imports and/or admin verification. User/pelaku usaha must not edit official/legal fields.
 
-- `database/migrations/2024_01_01_000006_create_gambar_produks_table.php`
+Fields that user must not edit:
 
-Model:
+- `no_sppirt`
+- `nib`
+- `nama_branding`
+- `nama_pelaku_usaha`
+- `kategori_pangan`
+- `jenis_pangan`
+- `kemasan`
+- `cara_penyimpanan`
+- `wilayah`
+- `kecamatan_id`
+- `jenis_barang_id`
+- `is_verified`
+- `tanggal_pengajuan`
+- `tanggal_verifikasi`
+- `masa_berlaku_pirt`
+- `status_oss`
+- `no_hp`
+- `user_id`
+
+Accepted target rule:
+
+- User must not edit `nama_toko` either.
+- User may only edit explicitly allowed support/display fields such as `harga`, possibly `deskripsi`, and product image depending on final UI policy.
+
+Current gap:
+
+- Web user product settings currently allow editing `nama_toko` and `harga`.
+- API user product update currently allows `nama_toko`, `alamat_toko`, `harga`, and `deskripsi`.
+- These must be tightened when implementing the accepted target rule.
+
+---
+
+## 9. Jenis Barang classification rules
+
+### 9.1 Current implementation
+
+Current code has:
+
+- `app/Models/JenisBarang.php`
+- `app/Models/JenisBarangAlias.php`
+- `app/Support/ProductTypeClassifier.php`
+- `database/migrations/2026_05_29_000001_add_normalization_fields_to_jenis_barangs_table.php`
+- `database/migrations/2026_05_29_000002_create_jenis_barang_aliases_table.php`
+- `database/seeders/JenisBarangSeeder.php`
+
+`ProductTypeClassifier` resolves imported raw `kategori_pangan` and `jenis_pangan` into simplified `jenis_barangs` categories. It checks database aliases first, then built-in keyword rules, then fallback category:
+
+```text
+Lainnya / Perlu Review
+```
+
+`ProdukImport` stores raw Excel values in:
+
+- `kategori_pangan`
+- `jenis_pangan`
+
+and stores simplified relation in:
+
+- `jenis_barang_id`
+
+This is the correct direction: raw imported data remains preserved, while public/admin filters use normalized categories.
+
+### 9.2 Current categories
+
+Default classifier categories include:
+
+- Makanan Ringan
+- Roti & Kue
+- Minuman
+- Bumbu & Sambal
+- Olahan Hewani
+- Olahan Buah & Sayur
+- Olahan Kacang, Biji & Umbi
+- Gula, Madu & Pemanis
+- Makanan Siap Saji
+- Lainnya / Perlu Review
+
+### 9.3 Current gaps
+
+Current admin `JenisBarangController` only handles simple CRUD for `nama_jenis`.
+
+Current gaps:
+
+- Admin UI does not manage `slug`, `deskripsi`, `is_active` even though the model/migration support them.
+- Admin UI does not manage `jenis_barang_aliases`.
+- There is no UI to review products in `Lainnya / Perlu Review`.
+- There is no admin action to reclassify/synchronize existing products after aliases are updated.
+- Public web filter currently has incomplete controller support.
+- Admin product list currently has no `jenis_barang_id` filter.
+
+Target rule:
+
+- Admin should be able to add/edit aliases/keywords without calling a programmer.
+- New unknown import values should land in `Lainnya / Perlu Review`.
+- Admin should be able to reclassify existing products after alias changes.
+- Classification logic must stay in service/support class, not controller or Blade.
+
+---
+
+## 10. Import flow
+
+### 10.1 Shared import service
+
+Main service:
+
+- `app/Services/ProductImportService.php`
+
+Support files:
+
+- `app/Support/Imports/SpreadsheetFileResolver.php`
+- `app/Support/Imports/SpreadsheetTemplateValidator.php`
+- `app/Rules/ImportSpreadsheetFile.php`
+- `app/Http/Requests/Admin/Concerns/HasImportSpreadsheetRules.php`
+- `app/Http/Requests/Admin/ImportProductRequest.php`
+- `app/Http/Requests/Admin/ImportCommitmentStatusRequest.php`
+
+Current import validation supports:
+
+- `.xls`
+- `.xlsx`
+- `.csv`
+
+Current validation max size:
+
+- 10 MB
+
+The service resolves reader type explicitly before calling Laravel Excel.
+
+### 10.2 Rekap Data PIRT import
+
+Main files:
+
+- Web: `Web/Admin/ProductImportController.php`
+- API: `Api/Admin/ProductImportController.php`
+- Import class: `app/Imports/ProdukImport.php`
+
+Current spreadsheet mapping in `ProdukImport`:
+
+- A: No
+- B: No SPPIRT
+- C: Nama Branding Produk
+- D: Kategori Pangan
+- E: Jenis Pangan
+- F: Kemasan
+- G: Cara Penyimpanan
+- H: NIB
+- I: Wilayah
+- J: Tanggal Pengajuan
+- K: Status OSS
+- L: No HP
+- M: Nama Pelaku Usaha
+- N: Alamat
+
+Rules:
+
+- Data starts at row 5.
+- `no_sppirt`, `nama_branding`, `nama_pelaku_usaha`, and `alamat` are required for a valid product row.
+- Existing products are matched by `no_sppirt`.
+- Existing product `is_verified` must not be reset by Rekap PIRT re-import.
+- New products default to `is_verified = false`.
+- Raw Excel data remains stored.
+- `jenis_barang_id` is set through `ProductTypeClassifier`.
+- Row failures must remain readable.
+
+### 10.3 Status Pemenuhan Komitmen import
+
+Main files:
+
+- Web: `Web/Admin/ProductVerificationController.php`
+- API: `Api/Admin/ProductVerificationController.php`
+- Import class: `app/Imports/PirtCommitmentStatusImport.php`
+
+Current spreadsheet mapping:
+
+- A: No
+- B: No SPPIRT
+- C: Provinsi
+- D: Kab/Kota
+- E: Nama Pelaku Usaha
+- F: Alamat Usaha
+- G: Phone
+- H: Terdaftar
+- I: NIB
+- J: Verifikasi Produk
+- K: Verifikasi Label
+- L: PKP
+- M: CPPOB
+- N: Status Pemenuhan Komitmen
+
+Rules:
+
+- Data starts at row 2.
+- Missing `no_sppirt` fails the row.
+- Unknown `no_sppirt` fails the row and tells admin to import Rekap PIRT first.
+- Writes to `pirt_commitment_statuses`.
+- Writes/updates `verifikasi_produks`.
+- Updates `produks.is_verified`.
+- If product becomes verified and has NIB, create/link one `user` account per NIB.
+- Auto-created user has `email = null` and `password = null`.
+- User with null password cannot login until admin sets password.
+
+Current behavior:
+
+- When product becomes verified, `tanggal_verifikasi` is set to now.
+- `masa_berlaku_pirt` is set to now + 5 years.
+
+Be careful: if real PIRT expiry dates later come from official documents, update this logic deliberately and document the source of truth.
+
+---
+
+## 11. Product image rules
+
+### 11.1 Current implementation
+
+Current image files:
 
 - `app/Models/GambarProduk.php`
-
-Purpose:
-
-- Product images stored on public disk.
-- Has primary image flag.
-- `getGambarUrlAttribute()` resolves display URL.
-
-Related service:
-
 - `app/Services/ProductImageService.php`
-
-### `verifikasi_produks`
-
-Migration:
-
-- `database/migrations/2024_01_01_000007_create_verifikasi_produks_table.php`
-- `database/migrations/2026_05_18_100001_update_verifikasi_produks_table.php`
-
-Model:
-
-- `app/Models/VerifikasiProduk.php`
-
-Purpose:
-
-- Stores manual/imported verification checklist and note.
-- Related to product and verifying user.
-
-### `import_logs`
-
-Migration:
-
-- `database/migrations/2024_01_01_000008_create_import_logs_table.php`
-
-Model:
-
-- `app/Models/ImportLog.php`
-
-Purpose:
-
-- Records import file name, row counts, success/failure counts, description, and importing user.
-
-### `audit_trails`
-
-Migration:
-
-- `database/migrations/2024_01_01_000009_create_audit_trails_table.php`
-
-Model:
-
-- `app/Models/AuditTrail.php`
-
-Purpose:
-
-- Records create/update/delete/verify/import style audit events.
-- Stores old/new data as JSON.
-- Created through `LogsAuditTrail`.
-
-### `activity_logs`
-
-Migration:
-
-- `database/migrations/2024_01_01_000010_create_activity_logs_table.php`
-
-Model:
-
-- `app/Models/ActivityLog.php`
-
-Purpose:
-
-- Stores user activity logs such as login/activity events.
-
-### `landing_page_contents`
-
-Migration:
-
-- `database/migrations/2024_01_01_000011_create_landing_page_contents_table.php`
-
-Model:
-
-- `app/Models/LandingPageContent.php`
-
-Purpose:
-
-- Stores fixed public landing page section content.
-- Current fields: `section_key`, `judul`, `konten`, `updated_by`.
-- Public home reads all records keyed by `section_key`.
-
-Rules:
-
-- Use for public content sections.
-- Do not store global app configuration here.
-- Do not allow admins to edit technical layout unless the task explicitly asks for it.
-
-### `pirt_commitment_statuses`
-
-Migration:
-
-- `database/migrations/2024_01_01_000012_create_pirt_commitment_statuses_table.php`
-
-Model:
-
-- `app/Models/PirtCommitmentStatus.php`
-
-Purpose:
-
-- Stores Status Pemenuhan Komitmen import results.
-- Unique key is `no_sppirt`.
-- May link to `produks`.
-
-### `system_settings`
-
-Migration:
-
-- `database/migrations/2026_05_12_065652_create_system_settings_table.php`
-
-Model:
-
-- `app/Models/SystemSetting.php`
-
-Purpose:
-
-- Stores global app configuration.
-- Current fields: `key`, `value`, `deskripsi`.
-
-Rules:
-
-- Use for global configuration only.
-- Do not use this table for detailed landing page section content.
-- Do not store secrets or `.env` values here.
-
-## 7. Service map
-
-### `app/Services/DashboardStatisticService.php`
-
-Purpose:
-
-- Provides dashboard statistics for admin and super admin.
-
-Methods:
-
-- `adminStats()`
-- `superAdminStats()`
-
-Use this for dashboard counts instead of duplicating dashboard queries in controllers.
-
-### `app/Services/ProductImageService.php`
-
-Purpose:
-
-- Handles product image upload and deletion.
-- Keeps primary image rules consistent.
-- Deletes physical files from storage.
-
-Methods:
-
-- `storeMany(Produk $produk, array $files, int $primaryIndex = 0)`
-- `delete(GambarProduk $gambarProduk)`
-
-Use this service for both web and API image workflows.
-
-### `app/Services/ProductImportService.php`
-
-Purpose:
-
-- Shared orchestrator for spreadsheet imports.
-- Handles DB transaction, Laravel Excel import call, import log, and summary response.
-
-Methods:
-
-- `importRekapPirt(UploadedFile $file)`
-- `importCommitmentStatus(UploadedFile $file)`
-
-Rules:
-
-- Do not duplicate import orchestration in controllers.
-- Add reusable reader/validation helpers here or in a dedicated support class if imports grow.
-- Keep `ImportLog` creation here.
-
-### `app/Services/ProductVerificationService.php`
-
-Purpose:
-
-- Source of truth for product verification and rejection.
-
-Methods:
-
-- `update(Produk $produk, array $data)`
-- `reject(Produk $produk, ?string $catatan = null)`
-
-Rules:
-
-- Use this service whenever verification status changes.
-- Do not update `produks.is_verified` manually elsewhere unless this service is not appropriate and the reason is documented.
-
-## 8. FormRequest map
-
-Admin requests:
-
-- `ImportProductRequest`
-  - Validates Rekap Data PIRT import file.
-- `ImportCommitmentStatusRequest`
-  - Validates Status Pemenuhan Komitmen import file.
-- `StoreProductRequest`
-  - Validates product create form.
-- `UpdateProductRequest`
-  - Validates product update form.
-- `StoreProductImageRequest`
-  - Validates up to 5 product images, jpg/jpeg/png/webp, max 2 MB each.
-- `StoreJenisBarangRequest`
-  - Validates new `jenis_barang`.
-- `UpdateJenisBarangRequest`
-  - Validates updated `jenis_barang`.
-- `UpdateProductVerificationRequest`
-  - Validates verification checklist fields.
-- `UpdateLandingPageRequest`
-  - Validates landing page section content.
-
-Super admin requests:
-
-- `StoreUserRequest`
-  - Validates user creation.
-- `UpdateUserRequest`
-  - Validates user update.
-- `UpdateSystemSettingRequest`
-  - Validates setting update.
-
-Rules:
-
-- Prefer FormRequests over inline controller validation.
-- If web and API share the same input shape, reuse the same FormRequest where possible.
-- Add custom messages in Indonesian when validation errors are shown to admins.
-
-## 9. View and UI file map
-
-### Layouts
-
-- `resources/views/layouts/public.blade.php`
-  - Public site wrapper.
-
-- `resources/views/layouts/auth.blade.php`
-  - Login/auth wrapper.
-
-- `resources/views/layouts/admin.blade.php`
-  - Admin/super admin wrapper.
-  - Includes sidebar, topbar, breadcrumb.
-  - Contains the current admin theme and legacy Tailwind utility remaps.
-
-### Shared components
-
-- `resources/views/components/alert.blade.php`
-  - Alert component.
-- `resources/views/components/badge-status.blade.php`
-  - Verification/status badge component.
-- `resources/views/components/modal-delete.blade.php`
-  - Delete confirmation modal.
-- `resources/views/components/product-card.blade.php`
-  - Product card for public/catalog usage.
-
-### Admin partials
-
-- `resources/views/partials/admin/sidebar.blade.php`
-  - Sidebar item source.
-  - Role-aware menu rendering.
-  - Update this file when adding/removing sidebar items, but always update route authorization too.
-
-- `resources/views/partials/admin/topbar.blade.php`
-  - Admin topbar.
-
-- `resources/views/partials/admin/breadcrumb.blade.php`
-  - Breadcrumb.
-
-### Public partials
-
-- `resources/views/partials/public/navbar.blade.php`
-- `resources/views/partials/public/hero.blade.php`
-- `resources/views/partials/public/footer.blade.php`
-
-### Admin pages
-
-- `resources/views/admin/dashboard.blade.php`
-  - Admin dashboard summary.
-
-- `resources/views/admin/products/index.blade.php`
-  - Product list and Rekap PIRT import form.
-- `resources/views/admin/products/create.blade.php`
-- `resources/views/admin/products/edit.blade.php`
+- `app/Http/Requests/Admin/StoreProductImageRequest.php`
+- `Web/Admin/ProductImageController.php`
+- `Api/Admin/ProductImageController.php`
+- `Web/User/ProductSettingController.php`
+- `Api/User/ProductImageController.php`
 - `resources/views/admin/products/show.blade.php`
-- `resources/views/admin/products/_form.blade.php`
+- `resources/views/user/products/setting-edit.blade.php`
 
-- `resources/views/admin/verifications/index.blade.php`
-  - Verification list and Status Pemenuhan Komitmen import form.
-- `resources/views/admin/verifications/edit.blade.php`
+Current schema:
 
-- `resources/views/admin/jenis-barang/index.blade.php`
-- `resources/views/admin/jenis-barang/create.blade.php`
-- `resources/views/admin/jenis-barang/edit.blade.php`
+- `gambar_produks` has `produk_id`, `url_gambar`, `is_primary`, `uploaded_at`.
+- No unique constraint currently prevents multiple images per product.
 
+Current service:
+
+- `ProductImageService::storeMany(Produk $produk, array $files, int $primaryIndex = 0)`
+- `ProductImageService::delete(GambarProduk $gambarProduk)`
+
+Current gaps:
+
+- Admin web/API use `ProductImageService::storeMany()`.
+- User web directly creates/deletes images instead of using `ProductImageService`.
+- User API directly creates/deletes images instead of using `ProductImageService`.
+- Current UI supports multiple images and primary image selection.
+
+### 11.2 Accepted target rule
+
+Final intended rule: **1 product has exactly one active product image**.
+
+When a new image is uploaded:
+
+1. Delete old physical file from `storage/app/public`.
+2. Delete or replace old `gambar_produks` record.
+3. Store the new file.
+4. Save new record as primary.
+5. Ensure public/admin/user display still works when no image exists.
+
+Implementation target:
+
+- Replace `storeMany()` with a clear single-image method, for example `replaceOne(Produk $produk, UploadedFile $file)`.
+- Route all admin web, admin API, user web, and user API image uploads through `ProductImageService`.
+- Remove multiple image UI and `primary_index` when the rule is implemented.
+- Add a safe migration/cleanup path if existing data has multiple images.
+- If using a DB constraint, add it only after cleaning duplicate rows.
+
+Do not claim this rule is implemented until the controllers, request validation, views, service, API, and DB constraints/data cleanup are aligned.
+
+---
+
+## 12. User / pelaku usaha area
+
+Main current files:
+
+- `Web/User/DashboardController.php`
+- `Web/User/AccountController.php`
+- `Web/User/ProductSettingController.php`
+- `Api/User/DashboardController.php`
+- `Api/User/ProductController.php`
+- `Api/User/ProductImageController.php`
+- `resources/views/user/dashboard.blade.php`
+- `resources/views/user/settings/index.blade.php`
+- `resources/views/user/products/setting.blade.php`
+- `resources/views/user/products/setting-edit.blade.php`
+
+Current web user features:
+
+- Dashboard product cards.
+- Account page with name and password forms.
+- Product settings page.
+- Product edit page.
+- Image upload, set primary image, and delete image.
+
+Accepted target rules:
+
+- Dashboard product action should only show **Edit**.
+- User must not delete products.
+- User must not see multiple confusing icons for the same edit action.
+- Remove/disable `view`, `tune`, and `delete` actions from dashboard card if they do not have distinct allowed functions.
+- User must not edit own name from user area.
+- User area must not display email.
+- User must not edit `nama_toko`.
+- User may edit only allowed support fields such as `harga`, possibly `deskripsi`, and image.
+
+Current gaps:
+
+- Dashboard text says user can add/change/delete own products.
+- Dashboard card currently contains multiple actions: visibility, edit, tune, delete.
+- User settings view displays email and allows name update.
+- User product edit allows `nama_toko` edit.
+- User image page supports multiple images, set primary, and delete.
+- Web routes still expose user image delete and set-primary.
+- API still exposes user image delete and update fields that include `nama_toko`.
+
+When implementing these accepted rules, update routes, controllers, Blade, API, and tests/checklist together.
+
+---
+
+## 13. Admin operational flow
+
+Admin routes are available to both `admin` and `super_admin` through:
+
+```php
+['auth', 'role:admin,super_admin']
+```
+
+Main admin files:
+
+- `Web/Admin/DashboardController.php`
+- `Web/Admin/ProductController.php`
+- `Web/Admin/ProductImportController.php`
+- `Web/Admin/ProductImageController.php`
+- `Web/Admin/ProductVerificationController.php`
+- `Web/Admin/JenisBarangController.php`
+- `Web/Admin/LandingPageController.php`
+- `Web/Admin/LogController.php`
+- `Web/Admin/ImportLogController.php`
+- `resources/views/partials/admin/sidebar.blade.php`
+- `resources/views/layouts/admin.blade.php`
+- `resources/views/admin/dashboard.blade.php`
+- `resources/views/admin/products/*`
+- `resources/views/admin/verifications/*`
+- `resources/views/admin/jenis-barang/*`
 - `resources/views/admin/landing-page/index.blade.php`
-  - Admin landing page content editor.
-
 - `resources/views/admin/logs/index.blade.php`
-  - Activity log page.
+- `resources/views/admin/import-logs/index.blade.php`
 
-### Super admin pages
+Current sidebar groups:
 
+- Utama
+  - Dashboard
+- Data PIRT
+  - Produk
+  - Jenis Barang
+  - Verifikasi
+- Konten Website
+  - Landing Page
+- Monitoring
+  - Log Aktivitas
+  - Riwayat Import
+- Super Admin, only for `super_admin`
+  - Kelola User
+  - System Settings
+  - Audit Trail
+
+Accepted target additions:
+
+- Admin and super admin should have an operational sidebar menu for **Gambar Produk**.
+- Admin should be able to manage role `user` / pelaku usaha accounts, but not admin or super admin accounts.
+- Menu suggestion: `Akun Pelaku Usaha`.
+
+Current gaps:
+
+- No dedicated `Gambar Produk` route/page exists yet.
+- No admin web route exists yet for managing pelaku usaha users.
+- There are legacy `resources/views/admin/users/*`, but current web routes do not use them.
+- There is an `Api/Admin/UserManagementController.php`, but current API routes do not register admin user management.
+
+Do not wire old/legacy files blindly. Inspect and adapt them or build a clean controller/request/view path.
+
+---
+
+## 14. Super admin flow
+
+Super admin routes are restricted to:
+
+```php
+['auth', 'role:super_admin']
+```
+
+Current files:
+
+- `Web/SuperAdmin/UserManagementController.php`
+- `Web/SuperAdmin/SystemSettingController.php`
+- `Web/SuperAdmin/AuditTrailController.php`
+- `Api/SuperAdmin/UserManagementController.php`
+- `Api/SuperAdmin/SystemSettingController.php`
+- `Api/SuperAdmin/AuditTrailController.php`
 - `resources/views/super-admin/users/*`
-  - User management.
 - `resources/views/super-admin/settings/index.blade.php`
-  - System settings.
 - `resources/views/super-admin/audit-trails/index.blade.php`
-  - Audit trail list.
 
-### Legacy/possibly unused views
+Current web user management behavior:
 
-These folders exist and must be checked before editing/removing:
-
-- `resources/views/admin/categories/*`
-- `resources/views/admin/umkm/*`
-- `resources/views/admin/users/*`
-
-They may be older admin views not referenced by the current `routes/web.php`. Verify usage before deleting.
-
-## 10. Route file responsibilities
-
-### `routes/web.php`
-
-Purpose:
-
-- Browser routes returning Blade views or redirects.
-- Uses session-based auth.
-- Defines public, guest, user, admin, and super admin route groups.
+- Super admin can create admin accounts.
+- Super admin cannot edit/delete their own account from this page.
+- Super admin cannot edit/delete another super admin through this flow.
+- `StoreUserRequest` only allows creating role `admin`.
+- `UpdateUserRequest` prohibits changing name, email, NIB, and role; allows password and status updates.
+- Destroy only allows deleting admin accounts; pelaku usaha should be nonactivated/locked instead.
 
 Rules:
 
-- Do not put API JSON routes here.
-- Keep route names stable unless all Blade/API references are updated.
-- Use route model binding consistently.
-- Keep role middleware on protected groups.
+- Do not allow normal admin direct access to `/super-admin/*`.
+- Do not let normal admin create/edit/delete admin or super admin accounts.
+- Do not expose super-admin-only menu items to normal admin.
+- If admin pelaku usaha management is added, keep it in admin scope with role restrictions that only allow role `user` records.
 
-### `routes/api.php`
-
-Purpose:
-
-- JSON API routes.
-- Uses Sanctum for authenticated API access.
-- Defines public, auth, user, admin, and super admin API groups.
-
-Rules:
-
-- Do not return Blade views or redirects from these controllers.
-- Keep role middleware on protected groups.
-- If an API feature mirrors a web feature, share the service layer.
-
-### `routes/channels.php`
-
-Purpose:
-
-- Broadcast authorization routes.
-- Only change if adding broadcasting/private channels.
-
-### `routes/console.php`
-
-Purpose:
-
-- Console command closures/schedules.
-- Only change if adding console tasks.
-
-## 11. Middleware and authorization
-
-### Middleware
-
-- `app/Http/Middleware/CheckRole.php`
-  - Checks authenticated user's role by `role.nama_role`.
-  - Used as `role:user`, `role:admin,super_admin`, and `role:super_admin`.
-
-- `app/Http/Middleware/Authenticate.php`
-  - Auth redirect behavior.
-
-- `app/Http/Middleware/RedirectIfAuthenticated.php`
-  - Guest route redirect behavior.
-
-Rules:
-
-- Do not replace route role middleware with UI-only checks.
-- When adding a protected page, add middleware first, then sidebar/menu.
-
-### Policies
-
-- `app/Policies/ProdukPolicy.php`
-- `app/Policies/UserPolicy.php`
-- `app/Policies/SystemSettingPolicy.php`
-- `app/Policies/AuditTrailPolicy.php`
-
-Rules:
-
-- Use policies for object-specific permissions when relevant.
-- If a controller currently uses route middleware only, do not add inconsistent authorization logic without checking the full flow.
-
-## 12. Audit and activity logging
-
-### `app/Traits/LogsAuditTrail.php`
-
-Purpose:
-
-- Shared audit logging helper for create/update/delete/import/verify style actions.
-
-Use it for:
-
-- Product create/update/delete.
-- Verification changes.
-- Import actions.
-- Landing page updates.
-- System setting updates.
-- User management changes.
-
-Never log:
-
-- raw passwords
-- password hashes unless already present in sanitized model output and unavoidable; prefer removing them
-- tokens
-- sessions
-- secrets
-- full uploaded file contents
-
-### `ActivityLog`
-
-Purpose:
-
-- User activity history.
-
-### `AuditTrail`
-
-Purpose:
-
-- Change history for admin/super admin actions.
-
-Rules:
-
-- Keep audit logs useful but not noisy.
-- Store before/after data where appropriate.
-- Sanitize sensitive fields before logging.
-
-## 13. File upload and storage rules
-
-Product images:
-
-- Use `ProductImageService`.
-- Store on Laravel `public` disk.
-- Validate type and size through FormRequest.
-- Keep exactly one primary image where possible.
-- Delete physical files when deleting image records.
-
-Landing page images, if added:
-
-- Use `Storage::disk('public')`.
-- Store paths, not absolute machine paths.
-- Render via `Storage::url()` or a consistent accessor/helper.
-- Replace old images safely.
-- Validate image file type and size.
-
-Spreadsheet imports:
-
-- Keep file validation in FormRequests.
-- Keep import orchestration in `ProductImportService`.
-- Keep spreadsheet row parsing in `app/Imports`.
-- Keep failure summaries readable.
-
-## 14. Database and migration rules
-
-### General rule
-
-For an existing deployed project, create a new migration when changing schema.
-
-### Fresh migration exception
-
-If the user explicitly says the database will be migrated fresh and asks to merge changes into existing table migrations, it is acceptable to edit existing migrations directly. In that case, update all dependent files in the same change.
-
-### Always update together
-
-When adding/removing/changing a column:
-
-1. Migration.
-2. Model `$fillable`.
-3. Model `$casts` if needed.
-4. Relationships if needed.
-5. FormRequest validation.
-6. Controller/service read/write logic.
-7. Blade form and display.
-8. API request/response if relevant.
-9. Seeder defaults.
-10. Tests/manual checklist.
-
-### Do not do these without explicit instruction
-
-- Do not rename tables casually.
-- Do not rename route names casually.
-- Do not rename model classes casually.
-- Do not drop data-bearing columns without checking all usage.
-- Do not modify `.env` secrets.
-- Do not store secrets in database settings.
+---
 
 ## 15. Landing page content rules
 
-Current flow:
+Current files:
 
-- `HomeController` loads all `LandingPageContent` records keyed by `section_key`.
-- `Admin/LandingPageController` edits records.
-- Current model fields are `section_key`, `judul`, `konten`, `updated_by`.
+- `app/Models/LandingPageContent.php`
+- `app/Services/LandingPageContentService.php`
+- `Web/Admin/LandingPageController.php`
+- `Api/Admin/LandingPageController.php`
+- `app/Http/Requests/Admin/UpdateLandingPageRequest.php`
+- `database/migrations/2024_01_01_000011_create_landing_page_contents_table.php`
+- `database/migrations/2026_05_27_000002_add_dynamic_fields_to_landing_page_contents_table.php`
+- `database/seeders/LandingPageContentSeeder.php`
+- `resources/views/admin/landing-page/index.blade.php`
+- public Blade files consuming landing content
 
-Conceptual boundary:
-
-- Landing page content = public text/image/button content for fixed sections.
-- System settings = global app configuration.
-
-Rules:
-
-- Do not let admin change Blade layout, section order, route names, CSS classes, or section keys unless explicitly required.
-- If adding image/button/status fields, update migration, model, request, controller, admin form, public Blade, and seeders.
-- Keep fixed sections seeded so admin edits existing sections rather than creating random keys.
-- If a section has repeated child cards, use a child table rather than stuffing complex JSON into one text field unless the task asks for JSON.
-
-Recommended fixed-section fields if expanded:
+Current fields:
 
 - `section_key`
 - `judul`
@@ -1184,360 +906,1250 @@ Recommended fixed-section fields if expanded:
 - `is_active`
 - `updated_by`
 
-## 16. System settings rules
+Current service behavior:
 
-Current flow:
-
-- `SuperAdmin/SystemSettingController` lists and updates `SystemSetting`.
-- `SystemSetting` model stores `key`, `value`, and `deskripsi`.
-
-Use system settings for:
-
-- app/site name
-- tagline
-- logo path
-- contact email
-- WhatsApp/contact number
-- office address
-- footer text
-- default pagination
-- import max file size
-- maintenance-style display flags if implemented
-
-Do not use system settings for:
-
-- landing page section paragraphs
-- product content
-- verification data
-- imported spreadsheet data
-- secrets such as API keys, passwords, tokens, or `.env` values
+- Stores new landing images on public disk.
+- Deletes old image when replaced or removed.
+- Updates `updated_by`.
 
 Rules:
 
-- Prefer seeded/whitelisted keys.
-- If adding cached setting helpers, clear cache after update.
-- Keep setting labels understandable for non-technical super admins.
+- Landing page is fixed-layout.
+- Admin may edit safe content fields only.
+- Admin must not edit section key, route, CSS class, order, or Blade structure.
+- Keep section keys seeded and controlled.
+- Validate `button_url` to only allow `http://`, `https://`, `/`, or `#`.
+- Do not store landing page paragraph content in `system_settings`.
 
-## 17. Sidebar/menu rules
+Current UI gap:
 
-Current source:
+- Admin view still displays raw `section_key` text.
+- Labels can be improved for non-IT users.
+- `Alt Gambar` should be explained as image description/accessibility text.
+- Consider dropdown shortcuts for common links before allowing custom URL.
+
+---
+
+## 16. System settings rules
+
+Current files:
+
+- `app/Models/SystemSetting.php`
+- `app/Support/SystemSettings.php`
+- `Web/SuperAdmin/SystemSettingController.php`
+- `Api/SuperAdmin/SystemSettingController.php`
+- `app/Http/Requests/SuperAdmin/UpdateSystemSettingRequest.php`
+- `database/migrations/2026_05_12_065652_create_system_settings_table.php`
+- `database/seeders/SystemSettingSeeder.php`
+- `resources/views/super-admin/settings/index.blade.php`
+
+Current seeded keys:
+
+- `site_name`
+- `site_tagline`
+- `footer_text`
+- `contact_email`
+- `contact_whatsapp`
+- `office_address`
+- `office_hours`
+- `logo_path`
+- `default_pagination`
+- `import_max_file_size_kb`
+
+Rules:
+
+- Use system settings for global non-secret configuration only.
+- Do not store passwords, tokens, API keys, private keys, or secrets in system settings.
+- Secrets belong in `.env`.
+- `deskripsi` is a helper explanation for admins/super admins, not public content.
+- `SystemSettings::forget()` must be called after setting updates because settings are cached.
+
+Current request already blocks keys containing:
+
+- `password`
+- `secret`
+- `token`
+- `api_key`
+- `private_key`
+
+Current UI gap:
+
+- `deskripsi` is editable. If this confuses non-IT users, make it read-only or clearly label it as `Keterangan Fungsi Pengaturan`.
+
+---
+
+## 17. Audit trail and activity logs
+
+Current files:
+
+- `app/Models/AuditTrail.php`
+- `app/Models/ActivityLog.php`
+- `app/Traits/LogsAuditTrail.php`
+- `Web/Admin/LogController.php`
+- `Web/SuperAdmin/AuditTrailController.php`
+- `Api/SuperAdmin/AuditTrailController.php`
+- `resources/views/admin/logs/index.blade.php`
+- `resources/views/super-admin/audit-trails/index.blade.php`
+
+Current trait methods:
+
+- `logAudit()` writes create/update/delete/verify/import style changes to `audit_trails`.
+- `logActivity()` writes login/logout/activity style events to `activity_logs`.
+
+Rules:
+
+- AuditTrail = data change history.
+- ActivityLog = access/activity history.
+- Do not log raw passwords, tokens, secrets, session values, or full uploaded file contents.
+- Keep logs useful but not noisy.
+
+Current gap:
+
+- API auth logs login/logout activity.
+- Web auth currently does not use `LogsAuditTrail` and does not log web login/logout.
+
+Target fix:
+
+- Web login/logout should also create ActivityLog entries.
+- Add the trait or dedicated auth logging service to web auth controller.
+
+---
+
+## 18. Sidebar and menu rules
+
+Current sidebar source:
 
 - `resources/views/partials/admin/sidebar.blade.php`
-
-Current behavior:
-
-- Normal admin items are always available to `admin` and `super_admin`.
-- Super admin items are appended only when `$role === 'super_admin'`.
 
 Rules:
 
 - Sidebar visibility must match route middleware.
 - Do not show super-admin-only items to normal admin.
-- Do not add too many menus; group by workflow.
-- New menu requires:
-  - route
-  - controller
-  - view
-  - middleware
-  - active route pattern
-  - icon
-  - empty state or fallback
-  - audit/logging when relevant
+- Do not add a sidebar item without route/controller/view/middleware.
+- Add menu groups by workflow, not by technical table names.
+- Use labels understandable by non-IT government staff.
 
-Recommended grouping when redesigning sidebar:
+When adding a new sidebar item, update/check:
+
+1. route name exists,
+2. middleware matches intended role,
+3. controller exists,
+4. view exists,
+5. active route pattern works,
+6. icon is clear,
+7. empty state exists,
+8. audit logging is added when data changes.
+
+Recommended future groups:
 
 - Utama: Dashboard
-- Data PIRT: Produk, Jenis Barang, Verifikasi
+- Data PIRT: Produk, Jenis Barang, Verifikasi, Gambar Produk
+- Pengguna: Akun Pelaku Usaha
 - Konten Website: Landing Page
-- Monitoring: Log Aktivitas, Riwayat Import if implemented
-- Super Admin: Kelola User, System Settings, Audit Trail
+- Monitoring: Log Aktivitas, Riwayat Import, later Pengingat PIRT if implemented
+- Super Admin: Kelola Admin, System Settings, Audit Trail
 
-## 18. Branding rules
+---
 
-Visible branding can be changed by task, but technical identifiers should stay stable unless explicitly requested.
+## 19. File upload and storage rules
 
-Safe to update when rebranding:
+Product images:
 
-- page titles
-- sidebar header
-- login page text
-- navbar/footer text
-- landing page seed content
-- visible labels in Blade
-- config `app.name` if the task asks
-- documentation text
+- Store files on Laravel `public` disk.
+- Render with accessor/helper or `Storage::url()`.
+- Validate image type and size.
+- Current max image size is 2 MB in existing requests.
+- Product image operations should be centralized in `ProductImageService`.
+- Target rule: one product should have one image; upload replaces old image.
 
-Do not automatically rename:
+Landing page images:
 
-- route names
-- database tables
-- columns
-- PHP namespaces
-- model classes
-- controller classes
-- migration filenames
-- storage paths
+- Use `LandingPageContentService`.
+- Store paths, not absolute machine paths.
+- Delete old image when replaced/removed.
+- Validate image type and size.
 
-Reason:
+Spreadsheet imports:
 
-- Technical renames can break route references, model binding, migrations, and existing data.
+- Keep validation in FormRequests/custom rule.
+- Keep reader resolution and template validation in support/service classes.
+- Keep row parsing in import classes.
+- Keep import orchestration in `ProductImportService`.
+- Keep import failure summaries readable.
 
-## 19. Legacy or possibly duplicate files
+---
 
-These files exist but are not clearly referenced by the current `routes/web.php` or `routes/api.php`. Check usage before editing or deleting:
+## 20. Database model map
+
+### `roles`
+
+Files:
+
+- migration: `2024_01_01_000001_create_roles_table.php`
+- model: `App\Models\Role`
+
+Purpose:
+
+- Stores role names: `user`, `admin`, `super_admin`.
+
+### `users`
+
+Files:
+
+- migration: `2024_01_01_000002_create_users_table.php`
+- migration: `2026_05_18_120000_add_nib_and_nullable_credentials_to_users_table.php`
+- model: `App\Models\User`
+
+Purpose:
+
+- Stores admins, super admins, and pelaku usaha accounts.
+- Supports nullable email/password after later migration.
+- Supports unique nullable NIB.
+
+Important helpers:
+
+- `hasRole()`
+- `isActive()`
+- `needsPasswordSetup()`
+
+Rules:
+
+- Do not remove email globally because admin/super admin still use it.
+- Do not create duplicate users for the same NIB.
+- User role email should be null/not used as a user-facing identity.
+
+### `kecamatans`
+
+Files:
+
+- migration: `2024_01_01_000003_create_kecamatans_table.php`
+- model: `App\Models\Kecamatan`
+
+Purpose:
+
+- Stores district data for Karanganyar.
+
+### `jenis_barangs`
+
+Files:
+
+- migration: `2024_01_01_000004_create_jenis_barangs_table.php`
+- migration: `2026_05_29_000001_add_normalization_fields_to_jenis_barangs_table.php`
+- model: `App\Models\JenisBarang`
+
+Purpose:
+
+- Stores simplified product type/category for filtering and display.
+
+Current fields include:
+
+- `nama_jenis`
+- `slug`
+- `deskripsi`
+- `is_active`
+
+### `jenis_barang_aliases`
+
+Files:
+
+- migration: `2026_05_29_000002_create_jenis_barang_aliases_table.php`
+- model: `App\Models\JenisBarangAlias`
+
+Purpose:
+
+- Stores keywords/aliases for classifying raw imported `jenis_pangan` into simplified `jenis_barangs`.
+
+### `produks`
+
+Files:
+
+- migration: `2024_01_01_000005_create_produks_table.php`
+- migration: `2026_05_18_000013_widen_produk_text_columns.php`
+- indexes: `2026_05_12_100001_add_indexes_for_performance.php`
+- model: `App\Models\Produk`
+
+Purpose:
+
+- Main PIRT product table.
+- Public catalog shows verified products only.
+- Unique business key is `no_sppirt`.
+
+### `gambar_produks`
+
+Files:
+
+- migration: `2024_01_01_000006_create_gambar_produks_table.php`
+- model: `App\Models\GambarProduk`
+
+Purpose:
+
+- Stores product image path and primary flag.
+
+Target rule:
+
+- Refactor to one image per product.
+
+### `verifikasi_produks`
+
+Files:
+
+- migration: `2024_01_01_000007_create_verifikasi_produks_table.php`
+- migration: `2026_05_18_100001_update_verifikasi_produks_table.php`
+- model: `App\Models\VerifikasiProduk`
+
+Purpose:
+
+- Stores verification checklist and status.
+
+### `import_logs`
+
+Files:
+
+- migration: `2024_01_01_000008_create_import_logs_table.php`
+- migration: `2026_05_27_000001_add_tipe_file_to_import_logs_table.php`
+- model: `App\Models\ImportLog`
+
+Purpose:
+
+- Records import file name, type, row counts, success/failure counts, description, and importing user.
+
+### `audit_trails`
+
+Files:
+
+- migration: `2024_01_01_000009_create_audit_trails_table.php`
+- model: `App\Models\AuditTrail`
+
+Purpose:
+
+- Records create/update/delete/verify/import data changes.
+
+### `activity_logs`
+
+Files:
+
+- migration: `2024_01_01_000010_create_activity_logs_table.php`
+- model: `App\Models\ActivityLog`
+
+Purpose:
+
+- Records user activity such as login/logout.
+
+### `landing_page_contents`
+
+Files:
+
+- migration: `2024_01_01_000011_create_landing_page_contents_table.php`
+- migration: `2026_05_27_000002_add_dynamic_fields_to_landing_page_contents_table.php`
+- model: `App\Models\LandingPageContent`
+
+Purpose:
+
+- Stores fixed public landing page section content.
+
+### `pirt_commitment_statuses`
+
+Files:
+
+- migration: `2024_01_01_000012_create_pirt_commitment_statuses_table.php`
+- model: `App\Models\PirtCommitmentStatus`
+
+Purpose:
+
+- Stores Status Pemenuhan Komitmen import results.
+- May link to `produks`.
+
+### `system_settings`
+
+Files:
+
+- migration: `2026_05_12_065652_create_system_settings_table.php`
+- model: `App\Models\SystemSetting`
+
+Purpose:
+
+- Stores global non-secret app configuration.
+
+---
+
+## 21. Service and support map
+
+### `DashboardStatisticService`
+
+Purpose:
+
+- Provides admin and super admin dashboard statistics.
+
+Methods:
+
+- `adminStats()`
+- `superAdminStats()`
+
+Use this for dashboard counts instead of duplicating queries.
+
+### `ProductImportService`
+
+Purpose:
+
+- Shared import orchestrator.
+- Resolves reader type.
+- Validates spreadsheet template.
+- Runs Laravel Excel import in a DB transaction.
+- Creates `ImportLog`.
+- Returns import summary.
+
+Methods:
+
+- `importRekapPirt(UploadedFile $file)`
+- `importCommitmentStatus(UploadedFile $file)`
+
+### `ProductVerificationService`
+
+Purpose:
+
+- Source of truth for manual verification and rejection.
+
+Methods:
+
+- `update(Produk $produk, array $data)`
+- `reject(Produk $produk, ?string $catatan = null)`
+
+Use this whenever manual verification status changes.
+
+### `ProductImageService`
+
+Purpose:
+
+- Product image upload/delete logic.
+
+Current methods:
+
+- `storeMany(Produk $produk, array $files, int $primaryIndex = 0)`
+- `delete(GambarProduk $gambarProduk)`
+
+Target refactor:
+
+- Add/replace with single-image replacement logic.
+
+### `LandingPageContentService`
+
+Purpose:
+
+- Updates landing page content.
+- Handles image replacement/removal.
+- Deletes old landing page images.
+
+### `ProductTypeClassifier`
+
+Purpose:
+
+- Classifies imported raw food type/category into simplified `jenis_barangs`.
+- Uses database aliases first, built-in rules second, fallback category last.
+
+### `SystemSettings`
+
+Purpose:
+
+- Cached helper for public/global settings.
+- Uses `Cache::rememberForever`.
+- Must be forgotten after updates.
+
+---
+
+## 22. FormRequest map
+
+Admin requests:
+
+- `ImportProductRequest`
+- `ImportCommitmentStatusRequest`
+- `StoreProductRequest`
+- `UpdateProductRequest`
+- `StoreProductImageRequest`
+- `StoreJenisBarangRequest`
+- `UpdateJenisBarangRequest`
+- `UpdateProductVerificationRequest`
+- `UpdateLandingPageRequest`
+
+Super admin requests:
+
+- `StoreUserRequest`
+- `UpdateUserRequest`
+- `UpdateSystemSettingRequest`
+
+Rules:
+
+- Prefer FormRequests over inline controller validation.
+- If web and API share input shape, reuse a FormRequest where possible.
+- Add Indonesian validation messages when users/admins will see them.
+- Do not let API accept fields that web UI forbids for the same role.
+
+Current gaps:
+
+- Some user web/API validation is inline in controllers.
+- User product update web/API rules differ.
+- User image upload web/API bypasses `ProductImageService` and request class.
+
+---
+
+## 23. API rules
+
+Rules:
+
+- Return JSON consistently.
+- Do not return Blade redirects from API controllers.
+- Use Sanctum for protected API routes.
+- Use role middleware for protected API groups.
+- Keep public APIs from exposing unverified products.
+- Do not expose sensitive fields such as password, token, secrets, or unnecessary email for role `user`.
+- If web and API represent the same feature, business rules must match.
+
+Current gaps:
+
+- API user profile/update still allows email/name updates.
+- API user product update still allows `nama_toko`.
+- API user product image upload/delete supports gallery-style images.
+- API auth `formatUser()` returns email for all roles.
+
+---
+
+## 24. Legacy or possibly unused files
+
+These files exist but are not clearly wired into current `routes/web.php` or `routes/api.php`. Check references before editing or deleting:
 
 - `app/Http/Controllers/Web/Admin/VerificationController.php`
-  - Similar purpose to `ProductVerificationController`.
-  - Current web routes use `ProductVerificationController`.
-
 - `app/Http/Controllers/Web/Admin/ProductPageController.php`
-  - Check references before use.
-
 - `app/Http/Controllers/Api/Admin/ProdukAdminController.php`
-  - Looks like older all-in-one admin API controller.
-  - Current API routes use separate admin controllers.
-
 - `app/Http/Controllers/Api/Admin/SystemSettingController.php`
-  - Current API routes expose settings under `Api/SuperAdmin/SystemSettingController`.
-
 - `app/Http/Controllers/Api/Admin/UserManagementController.php`
-  - Current API routes expose users under `Api/SuperAdmin/UserManagementController`.
-
 - `resources/views/admin/categories/*`
 - `resources/views/admin/umkm/*`
 - `resources/views/admin/users/*`
 
 Rules:
 
-- Do not call these dead code without checking the actual route map.
-- Do not delete them unless the task explicitly includes cleanup and all references are verified.
+- Do not connect legacy files to routes without reviewing their validation, authorization, and business logic.
+- Do not delete them unless cleanup is explicitly requested and all references are verified.
 
-## 20. Coding style rules
+---
+
+## 25. Branding rules
+
+Visible branding is SIPAMAN / Sistem Informasi Pangan Aman.
+
+Safe to update:
+
+- page titles,
+- sidebar header,
+- login page text,
+- navbar/footer text,
+- landing page seed content,
+- visible Blade labels,
+- config display name if explicitly requested.
+
+Do not automatically rename:
+
+- route names,
+- database tables,
+- columns,
+- PHP namespaces,
+- model classes,
+- controller classes,
+- migration filenames,
+- storage paths.
+
+Technical renames can break route references, model binding, migrations, and existing data.
+
+---
+
+## 27. Coding style rules
 
 ### PHP/Laravel
 
-- Follow existing Laravel style.
+- Follow existing Laravel conventions.
 - Use typed return values where existing code does.
 - Prefer dependency injection for services.
-- Prefer route model binding.
-- Prefer Eloquent relationships and scopes.
+- Prefer route model binding when safe and clear.
+- Use Eloquent relationships and scopes.
 - Use `DB::transaction()` for multi-model writes.
-- Use `firstOrFail()`/`abort_if()`/`abort_unless()` for clear failure handling.
-- Keep public methods in controllers small.
-- Extract repeated logic into services or private helpers.
-- Do not create large static utility classes unless truly needed.
+- Use `abort_if()` / `abort_unless()` for clear authorization or state failures when appropriate.
+- Extract repeated logic into services/support classes.
+- Do not create large static utility classes unless truly justified.
 
 ### Blade/Tailwind
 
 - Reuse layouts, components, and partials.
-- Keep form labels and messages in Indonesian.
+- Keep labels/messages in Indonesian.
 - Preserve responsive behavior.
-- Keep admin UI simple for non-technical users.
-- Avoid inline business logic in Blade beyond display conditions.
+- Keep admin UI simple for non-technical government staff.
+- Avoid business logic in Blade beyond display conditions.
 - Do not duplicate whole forms when a partial already exists.
 
-### API
+### Database/migrations
 
-- Return JSON consistently.
-- Use appropriate status codes.
-- Do not expose sensitive fields.
-- Keep API and web behavior aligned by sharing service logic.
+- For existing deployed projects, create new migrations for schema changes.
+- If the user explicitly says the database will be migrated fresh and asks to merge schema changes into existing migrations, editing existing migrations may be acceptable.
+- Always update dependent files together.
 
-## 21. Common change playbooks
+### Security
 
-### Adding or changing an admin CRUD page
+- Do not store secrets in database settings.
+- Do not log credentials or tokens.
+- Do not expose super-admin routes to normal admin.
+- Do not rely on hidden UI buttons as the only protection.
+- Keep validation and authorization server-side.
 
-Check/update:
+---
 
-1. route in `routes/web.php`
-2. controller under `app/Http/Controllers/Web/Admin`
-3. FormRequest under `app/Http/Requests/Admin`
-4. model fillable/casts/relations
-5. migration/seeder if schema/default data changes
-6. Blade view under `resources/views/admin`
-7. sidebar item if it is a top-level page
-8. audit logging if it changes important data
-9. tests/manual route check
+## 28. Common change playbooks
 
-### Adding or changing an API feature
+### 28.1 Changing product filters
 
 Check/update:
 
-1. route in `routes/api.php`
-2. controller under `app/Http/Controllers/Api`
-3. shared service if business logic overlaps with web
-4. FormRequest if validating input
-5. model and migration if data changes
-6. response structure
-7. auth/role middleware
-8. tests/manual API calls
+1. public web controller,
+2. public Blade filter form,
+3. public API controller,
+4. admin product controller,
+5. admin product Blade filter form,
+6. `Produk` scopes,
+7. query string preservation,
+8. empty states.
 
-### Changing import behavior
-
-Check/update:
-
-1. relevant FormRequest
-2. `ProductImportService`
-3. relevant import class under `app/Imports`
-4. `ImportLog` behavior
-5. admin web controller and API controller
-6. admin import Blade view
-7. row failure messages
-8. transaction behavior
-9. manual tests with valid/invalid files
-
-### Changing verification behavior
+### 28.2 Changing jenis barang classification
 
 Check/update:
 
-1. `UpdateProductVerificationRequest`
-2. `ProductVerificationService`
-3. `VerifikasiProduk` model/casts
-4. `Produk` fields affected by verification
-5. web/API verification controllers
-6. admin verification views
-7. public catalog visibility
-8. audit log
+1. `ProductTypeClassifier`,
+2. `JenisBarang` model,
+3. `JenisBarangAlias` model,
+4. migrations,
+5. seeders,
+6. `ProdukImport`,
+7. admin jenis barang controller/view,
+8. reclassification action/command if added,
+9. audit trail.
 
-### Changing landing page behavior
-
-Check/update:
-
-1. migration for `landing_page_contents` or child table
-2. `LandingPageContent` model
-3. `UpdateLandingPageRequest`
-4. `Admin/LandingPageController`
-5. `Api/Admin/LandingPageController`
-6. `HomeController`
-7. `resources/views/admin/landing-page/index.blade.php`
-8. public Blade partials/home page
-9. seeders for default sections
-10. image storage if images are added
-
-### Changing system settings
+### 28.3 Changing user/pelaku usaha profile rules
 
 Check/update:
 
-1. `system_settings` migration if fields change
-2. `SystemSetting` model
-3. `UpdateSystemSettingRequest`
-4. `SuperAdmin/SystemSettingController`
-5. settings view
-6. any setting helper/cache
-7. route/policy/middleware
-8. audit log
+1. web routes,
+2. web `AccountController`,
+3. user settings Blade,
+4. API `AuthController`,
+5. API responses,
+6. policies/middleware if needed,
+7. validation messages,
+8. seeders.
 
-### Changing sidebar
+### 28.4 Changing product image behavior
 
 Check/update:
 
-1. route exists
-2. route middleware matches role
-3. controller and view exist
-4. active route pattern is correct
-5. icon and label are clear
-6. normal admin vs super admin visibility is correct
-7. direct URL access is blocked when required
+1. migration/data cleanup,
+2. `GambarProduk` model,
+3. `ProductImageService`,
+4. admin web image controller,
+5. admin API image controller,
+6. user web image controller,
+7. user API image controller,
+8. `StoreProductImageRequest`,
+9. admin product image views,
+10. user product image views,
+11. public image display,
+12. storage file deletion.
 
-## 22. Testing checklist by change type
+### 28.5 Adding admin pelaku usaha management
 
-### General
+Check/update:
 
-```bash
-php artisan test
-npm run build
-```
+1. route under `/admin`,
+2. middleware `role:admin,super_admin`,
+3. controller under `Web/Admin`,
+4. FormRequest for user role only,
+5. view under `resources/views/admin`,
+6. sidebar item,
+7. policy or controller guard preventing admin/super admin modifications,
+8. audit trail,
+9. API equivalent if required.
 
-If migrations changed:
+### 28.6 Changing landing page behavior
 
-```bash
-php artisan migrate:fresh --seed
-```
+Check/update:
 
-If storage changed:
+1. `landing_page_contents` migration,
+2. `LandingPageContent` model,
+3. `UpdateLandingPageRequest`,
+4. `LandingPageContentService`,
+5. web admin controller,
+6. API admin controller,
+7. public controller/view,
+8. admin Blade labels,
+9. seeders,
+10. image storage replacement.
 
-```bash
-php artisan storage:link
-```
 
-### Authentication
+---
 
-Manually verify:
+## 29. Manual testing checklist
 
-- admin login with email
-- super admin login with email
-- user login with NIB/email
-- null-password user cannot log in
-- inactive/locked user cannot log in
-- logout works
-- redirect path matches role
+### Auth
+
+- Admin login with email.
+- Super admin login with email.
+- User login with NIB.
+- Null-password user is blocked with clear message.
+- Inactive/locked user is blocked.
+- Logout works.
+- Redirect path matches role.
+- Web and API login messages are not misleading.
 
 ### Public website
 
-Manually verify:
-
-- home loads
-- product catalog only shows verified products
-- product detail blocks unverified products
-- UMKM list/detail works
-- missing/empty images do not break layout
+- Home loads.
+- Product catalog only shows verified products.
+- Product detail blocks unverified products.
+- Search works.
+- Kecamatan filter works.
+- Jenis Barang filter works after implemented.
+- Missing images do not break layout.
 
 ### Admin
 
-Manually verify:
-
-- dashboard loads
-- product list/search/filter works
-- product create/update/delete works
-- image upload/delete works
-- verification tabs work
-- landing page editor works
-- logs page works
+- Dashboard loads.
+- Product list/search/filter works.
+- Product create/update/delete works according to admin rules.
+- Rekap PIRT import works.
+- Status Pemenuhan Komitmen import works.
+- Verification tabs and manual verification work.
+- Jenis Barang CRUD works.
+- Alias/reclassify works after implemented.
+- Product image replace works after implemented.
+- Landing page editor works.
+- Activity logs and import logs load.
 
 ### Super admin
 
-Manually verify:
+- Normal admin cannot access `/super-admin/*`.
+- Super admin can create admin accounts.
+- Super admin can update admin credentials/status.
+- Super admin cannot edit/delete own account from user management.
+- Super admin account is protected from regular management actions.
+- System settings update clears cache.
+- Audit trail page loads.
 
-- normal admin cannot access `/super-admin/*`
-- super admin can manage users
-- super admin can update settings
-- audit trail page loads
-- user cannot edit/delete own account from user management
-- super admin account is protected from normal management actions
+### User / pelaku usaha
+
+- User dashboard loads.
+- User only sees allowed product action(s).
+- User cannot delete products.
+- User cannot edit official PIRT data.
+- User cannot edit name/email after target rule is implemented.
+- User cannot edit `nama_toko` after target rule is implemented.
+- User can edit only allowed support fields.
+- User image upload follows single-image replacement after target rule is implemented.
 
 ### Import
 
-Manually verify:
-
-- valid Rekap PIRT import
-- invalid Rekap PIRT rows show friendly failure messages
-- valid Status Pemenuhan Komitmen import
-- unknown No SPPIRT produces row failure
-- import log is created
-- verified products appear publicly
-- user account creation from NIB does not create duplicates
+- Valid Rekap PIRT import succeeds.
+- Invalid Rekap PIRT rows show friendly row errors.
+- Existing verified product is not reset by Rekap PIRT re-import.
+- Valid Status Pemenuhan Komitmen import succeeds.
+- Unknown No SPPIRT produces row failure.
+- ImportLog is created.
+- Verified products appear publicly.
+- User account creation from NIB does not create duplicates.
 
 ### UI build
 
-Manually verify:
+- Admin layout renders.
+- Sidebar active states work.
+- Public layout renders.
+- Responsive layout is not broken.
+- Vite build succeeds.
 
-- admin layout still renders
-- sidebar active states still work
-- mobile/responsive layout is not broken
-- Vite build succeeds
+---
 
-## 23. Final response expectations for coding agents
+## 30. Known gaps from current code snapshot
 
-When finishing a task, report:
+These are not random bugs; they are the current mismatch between code and the latest accepted business direction. Future prompts may ask agents to fix them.
+
+1. Public web product filter has `jenis_barang_id` UI but controller does not pass `$jenisBarangs` or apply the filter.
+2. Admin product list does not yet filter by `jenis_barang_id`.
+3. Jenis Barang alias management UI is not implemented yet.
+4. Reclassify/sync existing product types after alias changes is not implemented yet.
+5. User dashboard still has multiple icons and delete action; target is Edit only.
+6. User account still displays email and allows updating name; target is no email/name update for role user.
+7. User product edit still allows `nama_toko`; target is user cannot edit it.
+8. Product images are still gallery-style; target is one product = one image, upload replaces old image.
+9. User image upload/delete bypasses `ProductImageService`.
+10. No dedicated admin/super admin `Gambar Produk` page exists yet.
+11. Admin cannot yet manage pelaku usaha accounts from `/admin` routes.
+12. Web login/logout does not yet write ActivityLog.
+13. Landing page editor is technically safe but labels can be more non-IT friendly.
+14. System setting `deskripsi` is editable; decide if it should become read-only/helper text.
+
+When fixing these gaps, update this file again if the code structure or rules change.
+
+---
+
+## 31. Agent final answer requirements
+
+When a coding agent finishes a task, the answer must include:
 
 1. What changed.
 2. Files changed.
 3. Why each change was needed.
 4. Commands/tests run.
-5. Any checks not run and why.
+5. Any commands/tests not run and why.
 6. Migration/seed impact.
 7. Manual verification steps.
-8. Any risk or follow-up needed.
+8. Remaining risks/follow-up.
 
 Do not claim a command passed unless it was actually run.
-Do not claim a UI was checked unless it was actually opened or reasoned from code with that limitation stated.
+Do not claim a UI was checked unless it was actually opened or explicitly reasoned from code with that limitation stated.
+Do not hide failures.
+
+---
+
+## 32. Current code snapshot coverage appendix
+This appendix was generated from the current uploaded code snapshot. It helps future agents verify that they have inspected the right files. It is an inventory, not a promise that every listed file is active in routes. Files marked elsewhere as legacy/possibly unused still need reference checks before editing or deleting.
+
+Coverage note: the functional sections above define the main behavior and responsibilities. This appendix closes the remaining gap by listing all current `app/`, `database/`, and `resources/views/` files visible in the uploaded snapshot. Default Laravel framework infrastructure files are listed but should normally be edited only when a task explicitly touches framework behavior.
+
+### HTTP Controllers
+
+- `app/Http/Controllers/Api/Admin/LandingPageController.php`
+- `app/Http/Controllers/Api/Admin/ProductController.php`
+- `app/Http/Controllers/Api/Admin/ProductImageController.php`
+- `app/Http/Controllers/Api/Admin/ProductImportController.php`
+- `app/Http/Controllers/Api/Admin/ProductVerificationController.php`
+- `app/Http/Controllers/Api/Admin/ProdukAdminController.php`
+- `app/Http/Controllers/Api/Admin/SystemSettingController.php`
+- `app/Http/Controllers/Api/Admin/UserManagementController.php`
+- `app/Http/Controllers/Api/AuthController.php`
+- `app/Http/Controllers/Api/ProdukController.php`
+- `app/Http/Controllers/Api/SuperAdmin/AuditTrailController.php`
+- `app/Http/Controllers/Api/SuperAdmin/SystemSettingController.php`
+- `app/Http/Controllers/Api/SuperAdmin/UserManagementController.php`
+- `app/Http/Controllers/Api/User/DashboardController.php`
+- `app/Http/Controllers/Api/User/ProductController.php`
+- `app/Http/Controllers/Api/User/ProductImageController.php`
+- `app/Http/Controllers/Controller.php`
+- `app/Http/Controllers/Web/Admin/DashboardController.php`
+- `app/Http/Controllers/Web/Admin/ImportLogController.php`
+- `app/Http/Controllers/Web/Admin/JenisBarangController.php`
+- `app/Http/Controllers/Web/Admin/LandingPageController.php`
+- `app/Http/Controllers/Web/Admin/LogController.php`
+- `app/Http/Controllers/Web/Admin/ProductController.php`
+- `app/Http/Controllers/Web/Admin/ProductImageController.php`
+- `app/Http/Controllers/Web/Admin/ProductImportController.php`
+- `app/Http/Controllers/Web/Admin/ProductPageController.php`
+- `app/Http/Controllers/Web/Admin/ProductVerificationController.php`
+- `app/Http/Controllers/Web/Admin/VerificationController.php`
+- `app/Http/Controllers/Web/Auth/AuthenticatedSessionController.php`
+- `app/Http/Controllers/Web/Public/HomeController.php`
+- `app/Http/Controllers/Web/Public/ProductController.php`
+- `app/Http/Controllers/Web/Public/UmkmController.php`
+- `app/Http/Controllers/Web/SuperAdmin/AuditTrailController.php`
+- `app/Http/Controllers/Web/SuperAdmin/SystemSettingController.php`
+- `app/Http/Controllers/Web/SuperAdmin/UserManagementController.php`
+- `app/Http/Controllers/Web/User/AccountController.php`
+- `app/Http/Controllers/Web/User/DashboardController.php`
+- `app/Http/Controllers/Web/User/ProductSettingController.php`
+
+### Form Requests
+
+- `app/Http/Requests/Admin/Concerns/HasImportSpreadsheetRules.php`
+- `app/Http/Requests/Admin/ImportCommitmentStatusRequest.php`
+- `app/Http/Requests/Admin/ImportProductRequest.php`
+- `app/Http/Requests/Admin/StoreJenisBarangRequest.php`
+- `app/Http/Requests/Admin/StoreProductImageRequest.php`
+- `app/Http/Requests/Admin/StoreProductRequest.php`
+- `app/Http/Requests/Admin/UpdateJenisBarangRequest.php`
+- `app/Http/Requests/Admin/UpdateLandingPageRequest.php`
+- `app/Http/Requests/Admin/UpdateProductRequest.php`
+- `app/Http/Requests/Admin/UpdateProductVerificationRequest.php`
+- `app/Http/Requests/SuperAdmin/StoreUserRequest.php`
+- `app/Http/Requests/SuperAdmin/UpdateSystemSettingRequest.php`
+- `app/Http/Requests/SuperAdmin/UpdateUserRequest.php`
+
+### Middleware
+
+- `app/Http/Middleware/Authenticate.php`
+- `app/Http/Middleware/CheckRole.php`
+- `app/Http/Middleware/EncryptCookies.php`
+- `app/Http/Middleware/PreventRequestsDuringMaintenance.php`
+- `app/Http/Middleware/RedirectIfAuthenticated.php`
+- `app/Http/Middleware/TrimStrings.php`
+- `app/Http/Middleware/TrustHosts.php`
+- `app/Http/Middleware/TrustProxies.php`
+- `app/Http/Middleware/ValidateSignature.php`
+- `app/Http/Middleware/VerifyCsrfToken.php`
+
+### Models
+
+- `app/Models/ActivityLog.php`
+- `app/Models/AuditTrail.php`
+- `app/Models/GambarProduk.php`
+- `app/Models/ImportLog.php`
+- `app/Models/JenisBarang.php`
+- `app/Models/JenisBarangAlias.php`
+- `app/Models/Kecamatan.php`
+- `app/Models/LandingPageContent.php`
+- `app/Models/PirtCommitmentStatus.php`
+- `app/Models/Produk.php`
+- `app/Models/Role.php`
+- `app/Models/SystemSetting.php`
+- `app/Models/User.php`
+- `app/Models/VerifikasiProduk.php`
+
+### Services
+
+- `app/Services/DashboardStatisticService.php`
+- `app/Services/LandingPageContentService.php`
+- `app/Services/ProductImageService.php`
+- `app/Services/ProductImportService.php`
+- `app/Services/ProductVerificationService.php`
+
+### Support classes
+
+- `app/Support/Imports/SpreadsheetFileResolver.php`
+- `app/Support/Imports/SpreadsheetTemplateValidator.php`
+- `app/Support/ProductTypeClassifier.php`
+- `app/Support/SystemSettings.php`
+
+### Import classes
+
+- `app/Imports/PirtCommitmentStatusImport.php`
+- `app/Imports/ProdukImport.php`
+
+### Policies
+
+- `app/Policies/AuditTrailPolicy.php`
+- `app/Policies/ProdukPolicy.php`
+- `app/Policies/SystemSettingPolicy.php`
+- `app/Policies/UserPolicy.php`
+
+### Providers
+
+- `app/Providers/AppServiceProvider.php`
+- `app/Providers/AuthServiceProvider.php`
+- `app/Providers/BroadcastServiceProvider.php`
+- `app/Providers/EventServiceProvider.php`
+- `app/Providers/RouteServiceProvider.php`
+
+### Traits
+
+- `app/Traits/LogsAuditTrail.php`
+
+### Rules
+
+- `app/Rules/ImportSpreadsheetFile.php`
+
+### Migrations
+
+- `database/migrations/0001_01_01_000001_create_cache_table.php`
+- `database/migrations/0001_01_01_000002_create_jobs_table.php`
+- `database/migrations/2024_01_01_000001_create_roles_table.php`
+- `database/migrations/2024_01_01_000002_create_users_table.php`
+- `database/migrations/2024_01_01_000003_create_kecamatans_table.php`
+- `database/migrations/2024_01_01_000004_create_jenis_barangs_table.php`
+- `database/migrations/2024_01_01_000005_create_produks_table.php`
+- `database/migrations/2024_01_01_000006_create_gambar_produks_table.php`
+- `database/migrations/2024_01_01_000007_create_verifikasi_produks_table.php`
+- `database/migrations/2024_01_01_000008_create_import_logs_table.php`
+- `database/migrations/2024_01_01_000009_create_audit_trails_table.php`
+- `database/migrations/2024_01_01_000010_create_activity_logs_table.php`
+- `database/migrations/2024_01_01_000011_create_landing_page_contents_table.php`
+- `database/migrations/2024_01_01_000012_create_pirt_commitment_statuses_table.php`
+- `database/migrations/2026_05_12_065652_create_system_settings_table.php`
+- `database/migrations/2026_05_12_100001_add_indexes_for_performance.php`
+- `database/migrations/2026_05_18_000013_widen_produk_text_columns.php`
+- `database/migrations/2026_05_18_100001_update_verifikasi_produks_table.php`
+- `database/migrations/2026_05_18_120000_add_nib_and_nullable_credentials_to_users_table.php`
+- `database/migrations/2026_05_27_000001_add_tipe_file_to_import_logs_table.php`
+- `database/migrations/2026_05_27_000002_add_dynamic_fields_to_landing_page_contents_table.php`
+- `database/migrations/2026_05_29_000001_add_normalization_fields_to_jenis_barangs_table.php`
+- `database/migrations/2026_05_29_000002_create_jenis_barang_aliases_table.php`
+
+### Seeders
+
+- `database/seeders/DatabaseSeeder.php`
+- `database/seeders/JenisBarangSeeder.php`
+- `database/seeders/KecamatanSeeder.php`
+- `database/seeders/LandingPageContentSeeder.php`
+- `database/seeders/RoleSeeder.php`
+- `database/seeders/SystemSettingSeeder.php`
+- `database/seeders/UserSeeder.php`
+
+### Factories
+
+- `database/factories/UserFactory.php`
+
+### Blade views
+
+- `resources/views/admin/categories/create.blade.php`
+- `resources/views/admin/categories/edit.blade.php`
+- `resources/views/admin/categories/index.blade.php`
+- `resources/views/admin/dashboard.blade.php`
+- `resources/views/admin/import-logs/index.blade.php`
+- `resources/views/admin/jenis-barang/create.blade.php`
+- `resources/views/admin/jenis-barang/edit.blade.php`
+- `resources/views/admin/jenis-barang/index.blade.php`
+- `resources/views/admin/landing-page/index.blade.php`
+- `resources/views/admin/logs/index.blade.php`
+- `resources/views/admin/products/_form.blade.php`
+- `resources/views/admin/products/create.blade.php`
+- `resources/views/admin/products/edit.blade.php`
+- `resources/views/admin/products/index.blade.php`
+- `resources/views/admin/products/show.blade.php`
+- `resources/views/admin/umkm/create.blade.php`
+- `resources/views/admin/umkm/edit.blade.php`
+- `resources/views/admin/umkm/index.blade.php`
+- `resources/views/admin/users/create.blade.php`
+- `resources/views/admin/users/edit.blade.php`
+- `resources/views/admin/users/index.blade.php`
+- `resources/views/admin/verifications/edit.blade.php`
+- `resources/views/admin/verifications/index.blade.php`
+- `resources/views/auth/login.blade.php`
+- `resources/views/auth/register.blade.php`
+- `resources/views/components/alert.blade.php`
+- `resources/views/components/badge-status.blade.php`
+- `resources/views/components/modal-delete.blade.php`
+- `resources/views/components/product-card.blade.php`
+- `resources/views/layouts/admin.blade.php`
+- `resources/views/layouts/auth.blade.php`
+- `resources/views/layouts/public.blade.php`
+- `resources/views/partials/admin/breadcrumb.blade.php`
+- `resources/views/partials/admin/sidebar.blade.php`
+- `resources/views/partials/admin/topbar.blade.php`
+- `resources/views/partials/public/footer.blade.php`
+- `resources/views/partials/public/hero.blade.php`
+- `resources/views/partials/public/navbar.blade.php`
+- `resources/views/public/home.blade.php`
+- `resources/views/public/products/index.blade.php`
+- `resources/views/public/products/show.blade.php`
+- `resources/views/public/umkm/index.blade.php`
+- `resources/views/public/umkm/show.blade.php`
+- `resources/views/super-admin/audit-trails/index.blade.php`
+- `resources/views/super-admin/settings/index.blade.php`
+- `resources/views/super-admin/users/_form.blade.php`
+- `resources/views/super-admin/users/create.blade.php`
+- `resources/views/super-admin/users/edit.blade.php`
+- `resources/views/super-admin/users/index.blade.php`
+- `resources/views/user/dashboard.blade.php`
+- `resources/views/user/products/setting-edit.blade.php`
+- `resources/views/user/products/setting.blade.php`
+- `resources/views/user/settings/index.blade.php`
+
+### Laravel bootstrap/infrastructure
+
+- `app/Console/Kernel.php`
+- `app/Exceptions/Handler.php`
+- `app/Http/Kernel.php`
+
+### Other
+
+- `database/.gitignore`
+
+---
+
+## Appendix A — Verified file inventory from current uploaded snapshot
+
+The current uploaded code snapshot contains **194 files** under `app/`, `routes/`, `resources/`, `database/`, and `composer.json`. Use this inventory to avoid guessing whether a file exists.
+
+- `app/Console/Kernel.php`
+- `app/Exceptions/Handler.php`
+- `app/Http/Controllers/Api/Admin/LandingPageController.php`
+- `app/Http/Controllers/Api/Admin/ProductController.php`
+- `app/Http/Controllers/Api/Admin/ProductImageController.php`
+- `app/Http/Controllers/Api/Admin/ProductImportController.php`
+- `app/Http/Controllers/Api/Admin/ProductVerificationController.php`
+- `app/Http/Controllers/Api/Admin/ProdukAdminController.php`
+- `app/Http/Controllers/Api/Admin/SystemSettingController.php`
+- `app/Http/Controllers/Api/Admin/UserManagementController.php`
+- `app/Http/Controllers/Api/AuthController.php`
+- `app/Http/Controllers/Api/ProdukController.php`
+- `app/Http/Controllers/Api/SuperAdmin/AuditTrailController.php`
+- `app/Http/Controllers/Api/SuperAdmin/SystemSettingController.php`
+- `app/Http/Controllers/Api/SuperAdmin/UserManagementController.php`
+- `app/Http/Controllers/Api/User/DashboardController.php`
+- `app/Http/Controllers/Api/User/ProductController.php`
+- `app/Http/Controllers/Api/User/ProductImageController.php`
+- `app/Http/Controllers/Controller.php`
+- `app/Http/Controllers/Web/Admin/DashboardController.php`
+- `app/Http/Controllers/Web/Admin/ImportLogController.php`
+- `app/Http/Controllers/Web/Admin/JenisBarangController.php`
+- `app/Http/Controllers/Web/Admin/LandingPageController.php`
+- `app/Http/Controllers/Web/Admin/LogController.php`
+- `app/Http/Controllers/Web/Admin/ProductController.php`
+- `app/Http/Controllers/Web/Admin/ProductImageController.php`
+- `app/Http/Controllers/Web/Admin/ProductImportController.php`
+- `app/Http/Controllers/Web/Admin/ProductPageController.php`
+- `app/Http/Controllers/Web/Admin/ProductVerificationController.php`
+- `app/Http/Controllers/Web/Admin/VerificationController.php`
+- `app/Http/Controllers/Web/Auth/AuthenticatedSessionController.php`
+- `app/Http/Controllers/Web/Public/HomeController.php`
+- `app/Http/Controllers/Web/Public/ProductController.php`
+- `app/Http/Controllers/Web/Public/UmkmController.php`
+- `app/Http/Controllers/Web/SuperAdmin/AuditTrailController.php`
+- `app/Http/Controllers/Web/SuperAdmin/SystemSettingController.php`
+- `app/Http/Controllers/Web/SuperAdmin/UserManagementController.php`
+- `app/Http/Controllers/Web/User/AccountController.php`
+- `app/Http/Controllers/Web/User/DashboardController.php`
+- `app/Http/Controllers/Web/User/ProductSettingController.php`
+- `app/Http/Kernel.php`
+- `app/Http/Middleware/Authenticate.php`
+- `app/Http/Middleware/CheckRole.php`
+- `app/Http/Middleware/EncryptCookies.php`
+- `app/Http/Middleware/PreventRequestsDuringMaintenance.php`
+- `app/Http/Middleware/RedirectIfAuthenticated.php`
+- `app/Http/Middleware/TrimStrings.php`
+- `app/Http/Middleware/TrustHosts.php`
+- `app/Http/Middleware/TrustProxies.php`
+- `app/Http/Middleware/ValidateSignature.php`
+- `app/Http/Middleware/VerifyCsrfToken.php`
+- `app/Http/Requests/Admin/Concerns/HasImportSpreadsheetRules.php`
+- `app/Http/Requests/Admin/ImportCommitmentStatusRequest.php`
+- `app/Http/Requests/Admin/ImportProductRequest.php`
+- `app/Http/Requests/Admin/StoreJenisBarangRequest.php`
+- `app/Http/Requests/Admin/StoreProductImageRequest.php`
+- `app/Http/Requests/Admin/StoreProductRequest.php`
+- `app/Http/Requests/Admin/UpdateJenisBarangRequest.php`
+- `app/Http/Requests/Admin/UpdateLandingPageRequest.php`
+- `app/Http/Requests/Admin/UpdateProductRequest.php`
+- `app/Http/Requests/Admin/UpdateProductVerificationRequest.php`
+- `app/Http/Requests/SuperAdmin/StoreUserRequest.php`
+- `app/Http/Requests/SuperAdmin/UpdateSystemSettingRequest.php`
+- `app/Http/Requests/SuperAdmin/UpdateUserRequest.php`
+- `app/Imports/PirtCommitmentStatusImport.php`
+- `app/Imports/ProdukImport.php`
+- `app/Models/ActivityLog.php`
+- `app/Models/AuditTrail.php`
+- `app/Models/GambarProduk.php`
+- `app/Models/ImportLog.php`
+- `app/Models/JenisBarang.php`
+- `app/Models/JenisBarangAlias.php`
+- `app/Models/Kecamatan.php`
+- `app/Models/LandingPageContent.php`
+- `app/Models/PirtCommitmentStatus.php`
+- `app/Models/Produk.php`
+- `app/Models/Role.php`
+- `app/Models/SystemSetting.php`
+- `app/Models/User.php`
+- `app/Models/VerifikasiProduk.php`
+- `app/Policies/AuditTrailPolicy.php`
+- `app/Policies/ProdukPolicy.php`
+- `app/Policies/SystemSettingPolicy.php`
+- `app/Policies/UserPolicy.php`
+- `app/Providers/AppServiceProvider.php`
+- `app/Providers/AuthServiceProvider.php`
+- `app/Providers/BroadcastServiceProvider.php`
+- `app/Providers/EventServiceProvider.php`
+- `app/Providers/RouteServiceProvider.php`
+- `app/Rules/ImportSpreadsheetFile.php`
+- `app/Services/DashboardStatisticService.php`
+- `app/Services/LandingPageContentService.php`
+- `app/Services/ProductImageService.php`
+- `app/Services/ProductImportService.php`
+- `app/Services/ProductVerificationService.php`
+- `app/Support/Imports/SpreadsheetFileResolver.php`
+- `app/Support/Imports/SpreadsheetTemplateValidator.php`
+- `app/Support/ProductTypeClassifier.php`
+- `app/Support/SystemSettings.php`
+- `app/Traits/LogsAuditTrail.php`
+- `composer.json`
+- `database/.gitignore`
+- `database/factories/UserFactory.php`
+- `database/migrations/0001_01_01_000001_create_cache_table.php`
+- `database/migrations/0001_01_01_000002_create_jobs_table.php`
+- `database/migrations/2024_01_01_000001_create_roles_table.php`
+- `database/migrations/2024_01_01_000002_create_users_table.php`
+- `database/migrations/2024_01_01_000003_create_kecamatans_table.php`
+- `database/migrations/2024_01_01_000004_create_jenis_barangs_table.php`
+- `database/migrations/2024_01_01_000005_create_produks_table.php`
+- `database/migrations/2024_01_01_000006_create_gambar_produks_table.php`
+- `database/migrations/2024_01_01_000007_create_verifikasi_produks_table.php`
+- `database/migrations/2024_01_01_000008_create_import_logs_table.php`
+- `database/migrations/2024_01_01_000009_create_audit_trails_table.php`
+- `database/migrations/2024_01_01_000010_create_activity_logs_table.php`
+- `database/migrations/2024_01_01_000011_create_landing_page_contents_table.php`
+- `database/migrations/2024_01_01_000012_create_pirt_commitment_statuses_table.php`
+- `database/migrations/2026_05_12_065652_create_system_settings_table.php`
+- `database/migrations/2026_05_12_100001_add_indexes_for_performance.php`
+- `database/migrations/2026_05_18_000013_widen_produk_text_columns.php`
+- `database/migrations/2026_05_18_100001_update_verifikasi_produks_table.php`
+- `database/migrations/2026_05_18_120000_add_nib_and_nullable_credentials_to_users_table.php`
+- `database/migrations/2026_05_27_000001_add_tipe_file_to_import_logs_table.php`
+- `database/migrations/2026_05_27_000002_add_dynamic_fields_to_landing_page_contents_table.php`
+- `database/migrations/2026_05_29_000001_add_normalization_fields_to_jenis_barangs_table.php`
+- `database/migrations/2026_05_29_000002_create_jenis_barang_aliases_table.php`
+- `database/seeders/DatabaseSeeder.php`
+- `database/seeders/JenisBarangSeeder.php`
+- `database/seeders/KecamatanSeeder.php`
+- `database/seeders/LandingPageContentSeeder.php`
+- `database/seeders/RoleSeeder.php`
+- `database/seeders/SystemSettingSeeder.php`
+- `database/seeders/UserSeeder.php`
+- `resources/css/app.css`
+- `resources/css/style.css`
+- `resources/js/app.js`
+- `resources/js/bootstrap.js`
+- `resources/views/admin/categories/create.blade.php`
+- `resources/views/admin/categories/edit.blade.php`
+- `resources/views/admin/categories/index.blade.php`
+- `resources/views/admin/dashboard.blade.php`
+- `resources/views/admin/import-logs/index.blade.php`
+- `resources/views/admin/jenis-barang/create.blade.php`
+- `resources/views/admin/jenis-barang/edit.blade.php`
+- `resources/views/admin/jenis-barang/index.blade.php`
+- `resources/views/admin/landing-page/index.blade.php`
+- `resources/views/admin/logs/index.blade.php`
+- `resources/views/admin/products/_form.blade.php`
+- `resources/views/admin/products/create.blade.php`
+- `resources/views/admin/products/edit.blade.php`
+- `resources/views/admin/products/index.blade.php`
+- `resources/views/admin/products/show.blade.php`
+- `resources/views/admin/umkm/create.blade.php`
+- `resources/views/admin/umkm/edit.blade.php`
+- `resources/views/admin/umkm/index.blade.php`
+- `resources/views/admin/users/create.blade.php`
+- `resources/views/admin/users/edit.blade.php`
+- `resources/views/admin/users/index.blade.php`
+- `resources/views/admin/verifications/edit.blade.php`
+- `resources/views/admin/verifications/index.blade.php`
+- `resources/views/auth/login.blade.php`
+- `resources/views/auth/register.blade.php`
+- `resources/views/components/alert.blade.php`
+- `resources/views/components/badge-status.blade.php`
+- `resources/views/components/modal-delete.blade.php`
+- `resources/views/components/product-card.blade.php`
+- `resources/views/layouts/admin.blade.php`
+- `resources/views/layouts/auth.blade.php`
+- `resources/views/layouts/public.blade.php`
+- `resources/views/partials/admin/breadcrumb.blade.php`
+- `resources/views/partials/admin/sidebar.blade.php`
+- `resources/views/partials/admin/topbar.blade.php`
+- `resources/views/partials/public/footer.blade.php`
+- `resources/views/partials/public/hero.blade.php`
+- `resources/views/partials/public/navbar.blade.php`
+- `resources/views/public/home.blade.php`
+- `resources/views/public/products/index.blade.php`
+- `resources/views/public/products/show.blade.php`
+- `resources/views/public/umkm/index.blade.php`
+- `resources/views/public/umkm/show.blade.php`
+- `resources/views/super-admin/audit-trails/index.blade.php`
+- `resources/views/super-admin/settings/index.blade.php`
+- `resources/views/super-admin/users/_form.blade.php`
+- `resources/views/super-admin/users/create.blade.php`
+- `resources/views/super-admin/users/edit.blade.php`
+- `resources/views/super-admin/users/index.blade.php`
+- `resources/views/user/dashboard.blade.php`
+- `resources/views/user/products/setting-edit.blade.php`
+- `resources/views/user/products/setting.blade.php`
+- `resources/views/user/settings/index.blade.php`
+- `routes/api.php`
+- `routes/channels.php`
+- `routes/console.php`
+- `routes/web.php`
