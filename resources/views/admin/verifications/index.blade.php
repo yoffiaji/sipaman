@@ -18,6 +18,7 @@
     <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="font-display text-xl font-bold">Import Status Pemenuhan Komitmen</h2>
         <p class="mt-1 text-slate-600">Upload Excel status komitmen untuk sinkron otomatis ke verifikasi produk.</p>
+        <p class="mt-1 text-sm font-semibold text-amber-700">Status verifikasi hanya diperbarui melalui import Excel Status Pemenuhan Komitmen agar sesuai dengan data sumber resmi.</p>
         <p class="mt-1 text-sm text-slate-500">Format yang didukung: .xls, .xlsx, dan .csv. Maksimal 10 MB.</p>
         @if ($lastImport)
             <p class="mt-2 text-sm text-slate-500">Import terakhir: <span class="font-semibold">{{ $lastImport->nama_file }}</span> oleh {{ $lastImport->user?->nama ?? '-' }}</p>
@@ -31,7 +32,7 @@
 
     <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div><h2 class="font-display text-xl font-bold">Daftar Verifikasi</h2><p class="mt-1 text-slate-600">Filter produk berdasarkan status verifikasi.</p></div>
+            <div><h2 class="font-display text-xl font-bold">Daftar Verifikasi</h2><p class="mt-1 text-slate-600">Status ditampilkan read-only dan mengikuti hasil import Excel.</p></div>
             <div class="flex flex-wrap gap-2 text-sm font-semibold">
                 @foreach(['semua'=>'Semua','terverifikasi'=>'Terverifikasi','proses'=>'Proses','belum'=>'Belum'] as $key => $label)
                     <a href="{{ route('admin.verifications.index', ['tab' => $key]) }}" class="rounded-lg border px-3 py-2 {{ $tab === $key ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-50' }}">{{ $label }}</a>
@@ -56,7 +57,7 @@
                             </td>
                             <td class="px-4 py-3">@if($product->is_verified)<x-badge-status status="terverifikasi">Terverifikasi</x-badge-status>@elseif($v)<x-badge-status status="proses">Proses</x-badge-status>@else<x-badge-status status="belum_terverifikasi">Belum</x-badge-status>@endif</td>
                             <td class="px-4 py-3">{{ $v?->verifikator?->nama ?? '-' }}</td>
-                            <td class="px-4 py-3 text-right"><a class="font-semibold text-blue-700" href="{{ route('admin.verifications.edit', $product) }}">Verifikasi</a></td>
+                            <td class="px-4 py-3 text-right"><a class="font-semibold text-blue-700" href="{{ route('admin.verifications.show', $product) }}">Detail</a></td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="px-4 py-10 text-center text-slate-500">Tidak ada data.</td></tr>

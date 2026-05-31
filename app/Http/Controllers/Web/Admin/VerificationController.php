@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Imports\PirtCommitmentStatusImport;
 use App\Models\ImportLog;
 use App\Models\Produk;
-use App\Models\VerifikasiProduk;
 use App\Traits\LogsAuditTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,8 +21,8 @@ use Maatwebsite\Excel\Facades\Excel;
  * Fitur:
  *   - Tampilkan semua produk dengan status verifikasi (tab filter)
  *   - Import Excel Status Pemenuhan Komitmen → otomatis sync ke verifikasi_produks
- *   - Verifikasi manual per produk (toggle 4 kolom)
- *   - Status komitmen dihitung OTOMATIS dari 4 kolom — tidak diisi manual
+ *   - Detail status verifikasi read-only
+ *   - Status verifikasi hanya berubah lewat import resmi
  */
 class VerificationController extends Controller
 {
@@ -126,66 +125,14 @@ class VerificationController extends Controller
     {
         $produk->load(['verifikasi.verifikator', 'commitmentStatus', 'kecamatan']);
 
-        return view('admin.verifications.edit', compact('produk'));
+        return view('admin.verifications.show', compact('produk'));
     }
 
     // ── PUT /admin/verifications/{produk} ─────────────────────
     public function update(Request $request, Produk $produk): RedirectResponse
     {
-        $data = $request->validate([
-            'verifikasi_produk'       => 'required|boolean',
-            'verifikasi_label'        => 'required|boolean',
-            'pkp'                     => 'required|boolean',
-            'cppob_pemeriksaan_sarana'=> 'required|boolean',
-            'catatan'                 => 'nullable|string|max:1000',
-        ]);
-
-        // Hitung status_komitmen otomatis dari 4 kolom
-        $statusKomitmen = VerifikasiProduk::hitungStatusKomitmen(
-            (bool) $data['verifikasi_produk'],
-            (bool) $data['verifikasi_label'],
-            (bool) $data['pkp'],
-            (bool) $data['cppob_pemeriksaan_sarana']
-        );
-
-        DB::beginTransaction();
-        try {
-            VerifikasiProduk::updateOrCreate(
-                ['produk_id' => $produk->id],
-                [
-                    'user_verifikator_id'       => auth()->id(),
-                    'verifikasi_produk'         => $data['verifikasi_produk'],
-                    'verifikasi_label'          => $data['verifikasi_label'],
-                    'pkp'                       => $data['pkp'],
-                    'cppob_pemeriksaan_sarana'  => $data['cppob_pemeriksaan_sarana'],
-                    'status_komitmen'           => $statusKomitmen,
-                    'catatan'                   => $data['catatan'] ?? null,
-                ]
-            );
-
-            // Update is_verified di produk sesuai kalkulasi
-            $produk->update(['is_verified' => $statusKomitmen]);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'Verifikasi gagal: ' . $e->getMessage()]);
-        }
-
-        $this->logAudit('verify_manual', 'produks', $produk->id, null, [
-            'verifikasi_produk'         => $data['verifikasi_produk'],
-            'verifikasi_label'          => $data['verifikasi_label'],
-            'pkp'                       => $data['pkp'],
-            'cppob_pemeriksaan_sarana'  => $data['cppob_pemeriksaan_sarana'],
-            'status_komitmen'           => $statusKomitmen,
-        ]);
-
-        $pesan = $statusKomitmen
-            ? 'Produk berhasil diverifikasi dan sekarang tampil di katalog publik.'
-            : 'Data verifikasi disimpan. Produk belum sepenuhnya lulus (ada kolom yang belum tercentang).';
-
         return redirect()
             ->route('admin.verifications.index')
-            ->with('success', $pesan);
+            ->withErrors(['verification' => 'Status verifikasi hanya diperbarui melalui import Excel Status Pemenuhan Komitmen.']);
     }
 }

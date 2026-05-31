@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportCommitmentStatusRequest;
-use App\Http\Requests\Admin\UpdateProductVerificationRequest;
 use App\Models\ImportLog;
 use App\Models\Produk;
 use App\Services\ProductImportService;
-use App\Services\ProductVerificationService;
 use App\Traits\LogsAuditTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,10 +16,8 @@ class ProductVerificationController extends Controller
 {
     use LogsAuditTrail;
 
-    public function __construct(
-        private ProductImportService $productImportService,
-        private ProductVerificationService $productVerificationService
-    ) {
+    public function __construct(private ProductImportService $productImportService)
+    {
     }
 
     public function index(Request $request): View
@@ -76,24 +72,10 @@ class ProductVerificationController extends Controller
             ->with('import_failures', array_slice($result['failures'], 0, 5));
     }
 
-    public function edit(Produk $produk): View
+    public function show(Produk $produk): View
     {
         $produk->load(['verifikasi.verifikator', 'commitmentStatus', 'kecamatan']);
 
-        return view('admin.verifications.edit', compact('produk'));
-    }
-
-    public function update(UpdateProductVerificationRequest $request, Produk $produk): RedirectResponse
-    {
-        $before = $produk->load('verifikasi')->toArray();
-        $verifikasi = $this->productVerificationService->update($produk, $request->validated());
-
-        $this->logAudit('verify_manual', 'produks', $produk->id, $before, $verifikasi->toArray());
-
-        $message = $verifikasi->status_komitmen
-            ? 'Produk berhasil diverifikasi dan sekarang tampil di katalog publik.'
-            : 'Data verifikasi disimpan. Produk belum sepenuhnya lulus.';
-
-        return redirect()->route('admin.verifications.index')->with('success', $message);
+        return view('admin.verifications.show', compact('produk'));
     }
 }
