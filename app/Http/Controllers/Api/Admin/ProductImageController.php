@@ -20,14 +20,11 @@ class ProductImageController extends Controller
 
     public function store(StoreProductImageRequest $request, Produk $produk): JsonResponse
     {
-        if (! $produk->is_verified) {
-            return response()->json(['message' => 'Gambar hanya boleh ditambahkan pada produk yang sudah terverifikasi.'], 422);
-        }
+        $before = $produk->gambarUtama?->toArray();
+        $gambar = $this->productImageService->replaceOne($produk, $request->file('gambar'));
+        $this->logAudit('update', 'gambar_produks', $produk->id, $before, $gambar->toArray());
 
-        $uploaded = $this->productImageService->storeMany($produk, $request->file('images'), (int) $request->input('primary_index', 0));
-        $this->logAudit('update', 'gambar_produks', $produk->id, null, ['jumlah_upload' => count($uploaded)]);
-
-        return response()->json(['message' => count($uploaded) . ' gambar berhasil diunggah.', 'data' => $uploaded], 201);
+        return response()->json(['message' => 'Gambar produk berhasil diganti.', 'data' => $gambar], 201);
     }
 
     public function destroy(GambarProduk $gambarProduk): JsonResponse

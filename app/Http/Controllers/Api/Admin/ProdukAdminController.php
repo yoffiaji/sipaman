@@ -9,11 +9,10 @@ use App\Models\GambarProduk;
 use App\Models\ImportLog;
 use App\Models\Produk;
 use App\Models\User;
-use App\Models\VerifikasiProduk;
+use App\Services\ProductImageService;
 use App\Traits\LogsAuditTrail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,7 +24,7 @@ use Maatwebsite\Excel\Facades\Excel;
  * Fitur:
  *   - CRUD produk (index, show, store, update, destroy)
  *   - Import Excel
- *   - Verifikasi & reject produk
+ *   - Import Excel
  *   - Upload & hapus gambar (hanya produk terverifikasi)
  */
 class ProdukAdminController extends Controller
@@ -255,96 +254,17 @@ class ProdukAdminController extends Controller
     // ── POST /api/admin/produk/{produk}/verify ─────────────────
     public function verify(Request $request, Produk $produk): JsonResponse
     {
-        $data = $request->validate([
-            'verifikasi_produk' => 'required|boolean',
-            'verifikasi_label' => 'required|boolean',
-            'status_komitmen' => 'required|in:ya,tidak',
-            'tanggal_verifikasi' => 'nullable|date',
-            'masa_berlaku_pirt' => 'nullable|date',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            VerifikasiProduk::updateOrCreate(
-                ['produk_id' => $produk->id],
-                [
-                    'verifikasi_produk' => $data['verifikasi_produk'],
-                    'verifikasi_label' => $data['verifikasi_label'],
-                    'status_komitmen' => $data['status_komitmen'],
-                    'user_verifikator_id' => auth()->id(),
-                ]
-            );
-
-            // Produk dianggap verified jika KEDUA verifikasi lulus
-            $isVerified = $data['verifikasi_produk'] && $data['verifikasi_label'];
-            $tanggalVerifikasi = $data['tanggal_verifikasi'] ?? now()->toDateString();
-            $masaBerlaku = $data['masa_berlaku_pirt']
-                ?? Carbon::parse($tanggalVerifikasi)->addYears(5)->toDateString();
-
-            $produk->update([
-                'is_verified' => $isVerified,
-                'tanggal_verifikasi' => $isVerified ? $tanggalVerifikasi : null,
-                'masa_berlaku_pirt' => $isVerified ? $masaBerlaku : null,
-            ]);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json(['message' => 'Verifikasi gagal: '.$e->getMessage()], 500);
-        }
-
-        $this->logAudit('verify', 'produks', $produk->id, null, [
-            'is_verified' => $isVerified,
-            ...$data,
-        ]);
-
         return response()->json([
-            'message' => $isVerified
-                ? 'Produk berhasil diverifikasi.'
-                : 'Data verifikasi disimpan (produk belum sepenuhnya lulus).',
-            'data' => $produk->fresh()->load(['verifikasi.verifikator']),
-        ]);
+            'message' => 'Status verifikasi hanya diperbarui melalui import Excel Status Pemenuhan Komitmen.',
+        ], 403);
     }
 
     // ── POST /api/admin/produk/{produk}/reject ─────────────────
     public function reject(Request $request, Produk $produk): JsonResponse
     {
-        $request->validate([
-            'alasan' => 'nullable|string|max:500',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            $produk->update([
-                'is_verified' => false,
-                'tanggal_verifikasi' => null,
-                'masa_berlaku_pirt' => null,
-            ]);
-            VerifikasiProduk::updateOrCreate(
-                ['produk_id' => $produk->id],
-                [
-                    'user_verifikator_id' => auth()->id(),
-                    'verifikasi_produk' => false,
-                    'verifikasi_label' => false,
-                    'status_komitmen' => 'tidak',
-                ]
-            );
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json(['message' => 'Reject gagal: '.$e->getMessage()], 500);
-        }
-
-        $this->logAudit('verify', 'produks', $produk->id, null, [
-            'action' => 'rejected',
-            'alasan' => $request->alasan,
-        ]);
-
         return response()->json([
-            'message' => 'Produk ditolak dan status verifikasi direset.',
-        ]);
+            'message' => 'Status verifikasi hanya diperbarui melalui import Excel Status Pemenuhan Komitmen.',
+        ], 403);
     }
 
     // ── POST /api/admin/produk/{produk}/images ─────────────────
@@ -352,44 +272,22 @@ class ProdukAdminController extends Controller
     {
         if (! $produk->is_verified) {
             return response()->json([
-                'message' => 'Gambar hanya boleh ditambahkan pada produk yang sudah terverifikasi.',
+                'message' => ProductImageService::VERIFIED_ONLY_MESSAGE,
             ], 422);
         }
 
         $request->validate([
-            'images' => 'required|array|min:1|max:5',
-            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
-            'primary_index' => 'nullable|integer|min:0',
+            'gambar' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $primaryIdx = (int) ($request->primary_index ?? 0);
-        $uploaded = [];
+        $before = $produk->gambarUtama?->toArray();
+        $gambar = app(ProductImageService::class)->replaceOne($produk, $request->file('gambar'));
 
-        foreach ($request->file('images') as $idx => $file) {
-            $path = $file->store("produk/{$produk->id}", 'public');
-            $isPrimary = ($idx === $primaryIdx);
-
-            // Jika ini akan jadi primary, reset primary lama
-            if ($isPrimary) {
-                GambarProduk::where('produk_id', $produk->id)
-                    ->where('is_primary', true)
-                    ->update(['is_primary' => false]);
-            }
-
-            $uploaded[] = GambarProduk::create([
-                'produk_id' => $produk->id,
-                'url_gambar' => $path,
-                'is_primary' => $isPrimary,
-            ]);
-        }
-
-        $this->logAudit('update', 'gambar_produks', $produk->id, null, [
-            'jumlah_upload' => count($uploaded),
-        ]);
+        $this->logAudit('update', 'gambar_produks', $produk->id, $before, $gambar->toArray());
 
         return response()->json([
-            'message' => count($uploaded).' gambar berhasil diunggah.',
-            'data' => $uploaded,
+            'message' => 'Gambar produk berhasil diganti.',
+            'data' => $gambar,
         ], 201);
     }
 
@@ -404,8 +302,7 @@ class ProdukAdminController extends Controller
             ->where('produk_id', $produk->id)
             ->firstOrFail();
 
-        Storage::disk('public')->delete($gambar->url_gambar);
-        $gambar->delete();
+        app(ProductImageService::class)->delete($gambar);
 
         $this->logAudit('delete', 'gambar_produks', $gambar->id, [
             'url_gambar' => $gambar->url_gambar,

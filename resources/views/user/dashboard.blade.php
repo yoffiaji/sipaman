@@ -12,7 +12,7 @@
             <div>
                 <x-badge-status status="info">Dashboard Pelaku Usaha</x-badge-status>
                 <h1 class="font-display mt-4 text-3xl font-700 text-ink md:text-4xl">Data toko dan produk milik Anda</h1>
-                <p class="mt-3 max-w-2xl leading-8 text-on-surface-variant">Anda dapat menambah, mengubah, dan menghapus produk Anda sendiri. Status verifikasi tetap dikontrol admin.</p>
+                <p class="mt-3 max-w-2xl leading-8 text-on-surface-variant">Anda dapat melengkapi harga, deskripsi tampilan, dan gambar produk. Data resmi PIRT tetap dikunci oleh admin.</p>
             </div>
 
         </div>
@@ -31,7 +31,7 @@
             </span>
             <div>
                 <p class="text-sm font-700 text-ink">Konfigurasi Produk</p>
-                <p class="text-xs text-on-surface-variant">Atur harga & gambar</p>
+                <p class="text-xs text-on-surface-variant">Atur harga, deskripsi, gambar</p>
             </div>
         </a>
 
@@ -43,7 +43,7 @@
             </span>
             <div>
                 <p class="text-sm font-700 text-ink">Pengaturan Akun</p>
-                <p class="text-xs text-on-surface-variant">Nama & password</p>
+                <p class="text-xs text-on-surface-variant">NIB & password</p>
             </div>
         </a>
 
@@ -132,24 +132,12 @@
                         </div>
 
                         {{-- Tombol aksi --}}
-                        <div class="relative z-10 flex items-center justify-end gap-1.5 border-t border-outline-variant/60 pt-3">
-                            <a href="{{ route('user.products.setting.edit', $product->id) }}" title="Lihat detail"
-                               class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-soft hover:text-primary">
-                                <span class="material-symbols-outlined text-[19px]">visibility</span>
-                            </a>
+                        <div class="relative z-10 flex items-center justify-end border-t border-outline-variant/60 pt-3">
                             <a href="{{ route('user.products.setting.edit', $product->id) }}" title="Edit produk"
-                               class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-soft hover:text-primary">
-                                <span class="material-symbols-outlined text-[19px]">edit</span>
+                               class="inline-flex items-center gap-1.5 rounded-lg bg-primary-soft px-3 py-2 text-xs font-600 text-primary transition-colors hover:bg-primary hover:text-white">
+                                <span class="material-symbols-outlined text-[17px]">edit</span>
+                                Edit
                             </a>
-                            <a href="{{ route('user.products.setting.edit', $product->id) }}" title="Konfigurasi harga & gambar"
-                               class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-soft hover:text-primary">
-                                <span class="material-symbols-outlined text-[19px]">tune</span>
-                            </a>
-                            <button type="button" title="Hapus produk"
-                                onclick="document.getElementById('hapus-{{ $product->id }}').showModal()"
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-red-50 hover:text-red-600">
-                                <span class="material-symbols-outlined text-[19px]">delete</span>
-                            </button>
                         </div>
                     </div>
                 </article>

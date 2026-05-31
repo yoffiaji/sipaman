@@ -6,8 +6,8 @@
         <div class="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-accent/25 blur-3xl"></div>
         <div class="relative">
             <x-badge-status status="info">Konfigurasi Produk</x-badge-status>
-            <h1 class="font-display mt-4 text-3xl font-700 text-ink md:text-4xl">Atur harga & gambar produk</h1>
-            <p class="mt-3 max-w-2xl leading-8 text-on-surface-variant">Lengkapi nama toko, harga, dan foto untuk setiap produk Anda. Harga yang masih <span class="font-700">NA</span> belum diatur.</p>
+            <h1 class="font-display mt-4 text-3xl font-700 text-ink md:text-4xl">Atur harga, deskripsi, dan gambar produk</h1>
+            <p class="mt-3 max-w-2xl leading-8 text-on-surface-variant">Data resmi PIRT tidak dapat diubah dari akun pelaku usaha. Harga yang masih <span class="font-700">NA</span> belum diatur.</p>
         </div>
     </div>
 </section>
@@ -42,7 +42,6 @@
                 <thead class="bg-surface-container-low text-on-surface-variant">
                     <tr>
                         <th class="px-6 py-3.5 font-600">Produk</th>
-                        <th class="px-6 py-3.5 font-600">Nama Toko</th>
                         <th class="px-6 py-3.5 font-600">Harga</th>
                         <th class="px-6 py-3.5 font-600">Gambar</th>
                         <th class="px-6 py-3.5 text-right font-600">Aksi</th>
@@ -70,11 +69,6 @@
                                 </div>
                             </td>
 
-                            {{-- Nama toko --}}
-                            <td class="px-6 py-4 text-on-surface-variant">
-                                {{ $produk->nama_toko ?? 'NA' }}
-                            </td>
-
                             {{-- Harga --}}
                             <td class="px-6 py-4">
                                 @if ($produk->harga)
@@ -90,8 +84,8 @@
                             {{-- Jumlah gambar --}}
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center gap-1 text-on-surface-variant">
-                                    <span class="material-symbols-outlined text-[16px]">photo_library</span>
-                                    {{ $produk->gambarProduks->count() }} foto
+                                    <span class="material-symbols-outlined text-[16px]">image</span>
+                                    {{ $produk->gambarUtama ? 'Sudah ada' : 'Belum ada' }}
                                 </span>
                             </td>
 
@@ -108,7 +102,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-14 text-center text-on-surface-variant">
+                                <td colspan="4" class="px-6 py-14 text-center text-on-surface-variant">
                                 <span class="material-symbols-outlined text-[40px] text-outline">inventory_2</span>
                                 <p class="mt-2 font-600 text-on-surface">Belum ada produk</p>
                                 <p class="mt-1 text-sm">Hubungi admin untuk menambahkan produk PIRT Anda.</p>

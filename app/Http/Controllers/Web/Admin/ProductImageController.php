@@ -20,19 +20,12 @@ class ProductImageController extends Controller
 
     public function store(StoreProductImageRequest $request, Produk $produk): RedirectResponse
     {
-        if (! $produk->is_verified) {
-            return back()->withErrors(['images' => 'Gambar hanya boleh ditambahkan pada produk yang sudah terverifikasi.']);
-        }
+        $before = $produk->gambarUtama?->toArray();
+        $gambar = $this->productImageService->replaceOne($produk, $request->file('gambar'));
 
-        $uploaded = $this->productImageService->storeMany(
-            $produk,
-            $request->file('images'),
-            (int) $request->input('primary_index', 0)
-        );
+        $this->logAudit('update', 'gambar_produks', $produk->id, $before, $gambar->toArray());
 
-        $this->logAudit('update', 'gambar_produks', $produk->id, null, ['jumlah_upload' => count($uploaded)]);
-
-        return back()->with('success', count($uploaded) . ' gambar berhasil diunggah.');
+        return back()->with('success', 'Gambar produk berhasil diganti.');
     }
 
     public function destroy(GambarProduk $gambarProduk): RedirectResponse

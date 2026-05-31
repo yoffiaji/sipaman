@@ -54,29 +54,23 @@
             @if ($produk->is_verified)
                 <form action="{{ route('admin.products.images.store', $produk) }}" method="POST" enctype="multipart/form-data" class="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
                     @csrf
-                    <input type="file" name="images[]" multiple accept="image/*" required class="block w-full rounded-lg border border-slate-300 text-sm file:mr-4 file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:font-semibold">
-                    <input type="number" name="primary_index" value="0" min="0" class="w-28 rounded-lg border-slate-300" title="Index gambar utama">
-                    <button class="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white">Upload</button>
+                    <input type="file" name="gambar" accept="image/jpeg,image/png,image/jpg,image/webp" required class="block w-full rounded-lg border border-slate-300 text-sm file:mr-4 file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:font-semibold">
+                    <button class="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white">Ganti Gambar</button>
                 </form>
+                <p class="mt-2 text-xs text-slate-500">Upload baru akan mengganti gambar lama. Format JPG, PNG, atau WebP. Maksimal 2 MB.</p>
             @else
-                <x-alert type="warning" class="mt-4">Gambar hanya dapat diunggah setelah produk terverifikasi.</x-alert>
+                <x-alert type="warning" class="mt-4">Belum terverifikasi — gambar belum dapat diubah.</x-alert>
             @endif
 
-            <div class="mt-5 grid gap-4 md:grid-cols-4">
-                @forelse ($produk->gambarProduks as $gambar)
-                    <div class="overflow-hidden rounded-lg border border-slate-200">
-                        <img src="{{ $gambar->gambar_url }}" alt="{{ $produk->nama_branding }}" class="h-40 w-full object-cover">
-                        <div class="flex items-center justify-between p-3 text-sm">
-                            <span>{{ $gambar->is_primary ? 'Utama' : 'Gambar' }}</span>
-                            <form action="{{ route('admin.products.images.destroy', $gambar) }}" method="POST" onsubmit="return confirm('Hapus gambar?')">
-                                @csrf @method('DELETE')
-                                <button class="font-semibold text-red-700">Hapus</button>
-                            </form>
-                        </div>
+            <div class="mt-5">
+                @if ($produk->gambarUtama)
+                    <div class="max-w-sm overflow-hidden rounded-lg border border-slate-200">
+                        <img src="{{ $produk->gambarUtama->gambar_url }}" alt="{{ $produk->nama_branding }}" class="h-56 w-full object-cover">
+                        <div class="p-3 text-sm font-semibold text-slate-700">Gambar aktif</div>
                     </div>
-                @empty
+                @else
                     <p class="text-sm text-slate-500">Belum ada gambar produk.</p>
-                @endforelse
+                @endif
             </div>
         </div>
     </div>
