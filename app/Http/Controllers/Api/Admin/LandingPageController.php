@@ -19,10 +19,7 @@ class LandingPageController extends Controller
 
     public function publicIndex(): JsonResponse
     {
-        $contents = LandingPageContent::active()
-            ->orderBy('section_key')
-            ->get()
-            ->keyBy('section_key');
+        $contents = $this->landingPageContentService->managedSectionsForPublic();
 
         return response()->json(['data' => $contents]);
     }
@@ -30,15 +27,18 @@ class LandingPageController extends Controller
     public function index(): JsonResponse
     {
         return response()->json([
-            'data' => LandingPageContent::with('updatedBy:id,nama')->orderBy('section_key')->get(),
+            'data' => $this->landingPageContentService->managedSections(),
+            'sections' => collect($this->landingPageContentService->managedSectionKeys())
+                ->mapWithKeys(fn (string $key) => [$key => $this->landingPageContentService->sectionMeta($key)]),
         ]);
     }
 
     public function update(UpdateLandingPageRequest $request, string $section): JsonResponse
     {
         $content = LandingPageContent::where('section_key', $section)->firstOrFail();
+        $this->landingPageContentService->assertManagedSection($content);
         $before = $content->toArray();
-        $updated = $this->landingPageContentService->update($content, $request->validated(), auth()->id());
+        $updated = $this->landingPageContentService->update($content, $request->contentData(), auth()->id());
 
         $this->logAudit('update', 'landing_page_contents', $content->id, $before, $updated->toArray());
 

@@ -8,7 +8,6 @@ use App\Http\Controllers\Web\Admin\LogController;
 use App\Http\Controllers\Web\Admin\PelakuUsahaAccountController;
 use App\Http\Controllers\Web\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Web\Admin\ProductImageManagementController;
-use App\Http\Controllers\Web\Admin\ProductImageController;
 use App\Http\Controllers\Web\Admin\ProductImportController;
 use App\Http\Controllers\Web\Admin\ProductVerificationController;
 use App\Http\Controllers\Web\Auth\AuthenticatedSessionController;
@@ -70,10 +69,9 @@ Route::middleware(['auth', 'role:admin,super_admin'])
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard.alias');
 
         Route::resource('products', AdminProductController::class)
-            ->parameters(['products' => 'produk']);
+            ->parameters(['products' => 'produk'])
+            ->only(['index', 'show']);
         Route::post('/products/import/rekap-pirt', [ProductImportController::class, 'rekapPirt'])->name('products.import.rekap-pirt');
-        Route::post('/products/{produk}/images', [ProductImageController::class, 'store'])->name('products.images.store');
-        Route::delete('/products/images/{gambarProduk}', [ProductImageController::class, 'destroy'])->name('products.images.destroy');
         Route::get('/product-images', [ProductImageManagementController::class, 'index'])->name('product-images.index');
         Route::post('/product-images/{produk}', [ProductImageManagementController::class, 'update'])->name('product-images.update');
 
@@ -89,7 +87,7 @@ Route::middleware(['auth', 'role:admin,super_admin'])
 
         Route::resource('landing-page', LandingPageController::class)
             ->parameters(['landing-page' => 'landingPage'])
-            ->only(['index', 'update']);
+            ->only(['index', 'edit', 'update']);
 
         Route::get('/pelaku-usaha', [PelakuUsahaAccountController::class, 'index'])->name('pelaku-usaha.index');
         Route::get('/pelaku-usaha/{user}/edit', [PelakuUsahaAccountController::class, 'edit'])->name('pelaku-usaha.edit');

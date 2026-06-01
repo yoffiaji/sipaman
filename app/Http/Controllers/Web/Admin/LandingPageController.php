@@ -20,9 +20,21 @@ class LandingPageController extends Controller
 
     public function index(): View
     {
-        $contents = LandingPageContent::with('updatedBy')->orderBy('section_key')->get();
+        $contents = $this->landingPageContentService->managedSections();
+        $sectionMeta = collect($this->landingPageContentService->managedSectionKeys())
+            ->mapWithKeys(fn (string $key) => [$key => $this->landingPageContentService->sectionMeta($key)])
+            ->all();
 
-        return view('admin.landing-page.index', compact('contents'));
+        return view('admin.landing-page.index', compact('contents', 'sectionMeta'));
+    }
+
+    public function edit(LandingPageContent $landingPage): View
+    {
+        $this->landingPageContentService->assertManagedSection($landingPage);
+
+        $sectionMeta = $this->landingPageContentService->sectionMeta($landingPage);
+
+        return view('admin.landing-page.edit', compact('landingPage', 'sectionMeta'));
     }
 
     public function update(UpdateLandingPageRequest $request, LandingPageContent $landingPage): RedirectResponse
@@ -31,6 +43,6 @@ class LandingPageController extends Controller
         $updated = $this->landingPageContentService->update($landingPage, $request->contentData(), auth()->id());
         $this->logAudit('update', 'landing_page_contents', $landingPage->id, $before, $updated->toArray());
 
-        return back()->with('success', 'Konten landing page berhasil diperbarui.');
+        return redirect()->route('admin.landing-page.index')->with('success', 'Konten landing page berhasil diperbarui.');
     }
 }

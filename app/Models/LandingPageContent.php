@@ -18,6 +18,8 @@ class LandingPageContent extends Model
         'image_alt',
         'button_text',
         'button_url',
+        'secondary_button_text',
+        'secondary_button_url',
         'is_active',
         'updated_by',
     ];

@@ -11,15 +11,15 @@
         $featuredSubtitle = $featuredSection?->subjudul ?: 'Direktori';
         $featuredTitle = $featuredSection?->judul ?: 'Produk Pangan Terverifikasi';
         $featuredContent = $featuredSection?->konten ?: 'Produk lokal Karanganyar yang sudah terverifikasi dan siap dikenalkan ke publik.';
-        $featuredButtonText = $featuredSection?->button_text ?: 'Lihat Semua Produk';
-        $featuredButtonUrl = $featuredSection?->button_url ?: route('products.index');
+        $featuredButtonText = $featuredSection ? $featuredSection->button_text : 'Lihat Semua Produk';
+        $featuredButtonUrl = $featuredSection ? $featuredSection->button_url : route('products.index');
         $regionSection = $contents->get('region_potential');
         $showRegionSection = ! $regionSection || $regionSection->is_active;
         $regionSubtitle = $regionSection?->subjudul ?: 'Sebaran Wilayah';
         $regionTitle = $regionSection?->judul ?: 'Potensi Lokal Tiap Kecamatan';
         $regionContent = $regionSection?->konten ?: 'SIPAMAN membantu masyarakat melihat produk PIRT, pelaku usaha, dan persebaran potensi pangan aman dari wilayah Karanganyar.';
-        $regionButtonText = $regionSection?->button_text ?: 'Jelajahi UMKM';
-        $regionButtonUrl = $regionSection?->button_url ?: route('umkm.index');
+        $regionButtonText = $regionSection ? $regionSection->button_text : 'Jelajahi UMKM';
+        $regionButtonUrl = $regionSection ? $regionSection->button_url : route('umkm.index');
     @endphp
 
     {{-- Stats cards --}}
@@ -51,20 +51,17 @@
     @if ($showFeaturedSection)
     <section class="mx-auto max-w-container px-4 py-16 md:px-6">
         <div class="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-            <div class="flex max-w-2xl gap-5">
-                @if ($featuredSection?->image_url)
-                    <img src="{{ $featuredSection->image_url }}" alt="{{ $featuredSection->image_alt ?? $featuredTitle }}" class="hidden h-24 w-32 rounded-2xl object-cover shadow-soft md:block">
-                @endif
-                <div>
-                    <p class="eyebrow text-[11px] font-600 text-secondary">{{ $featuredSubtitle }}</p>
-                    <h2 class="font-display mt-2 text-3xl font-700 text-ink md:text-4xl">{{ $featuredTitle }}</h2>
-                    <p class="mt-3 leading-7 text-on-surface-variant">{{ $featuredContent }}</p>
-                </div>
+            <div class="max-w-2xl">
+                <p class="eyebrow text-[11px] font-600 text-secondary">{{ $featuredSubtitle }}</p>
+                <h2 class="font-display mt-2 text-3xl font-700 text-ink md:text-4xl">{{ $featuredTitle }}</h2>
+                <p class="mt-3 leading-7 text-on-surface-variant">{{ $featuredContent }}</p>
             </div>
-            <a href="{{ $featuredButtonUrl }}" class="inline-flex items-center gap-2 self-start rounded-full bg-primary px-5 py-2.5 font-600 text-white transition-colors hover:bg-primary-container md:self-auto">
-                {{ $featuredButtonText }}
-                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-            </a>
+            @if ($featuredButtonText && $featuredButtonUrl)
+                <a href="{{ $featuredButtonUrl }}" class="inline-flex items-center gap-2 self-start rounded-full bg-primary px-5 py-2.5 font-600 text-white transition-colors hover:bg-primary-container md:self-auto">
+                    {{ $featuredButtonText }}
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </a>
+            @endif
         </div>
         <div class="grid gap-6 md:grid-cols-3">
             @forelse ($featuredProducts as $product)
@@ -96,28 +93,26 @@
                     <p class="eyebrow text-[11px] font-600 text-accent">{{ $regionSubtitle }}</p>
                     <h2 class="font-display mt-2 text-3xl font-700 md:text-4xl">{{ $regionTitle }}</h2>
                     <p class="mt-4 max-w-2xl leading-8 text-white/85">{{ $regionContent }}</p>
-                    <a href="{{ $regionButtonUrl }}" class="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 font-600 text-ink transition-colors hover:bg-white">
-                        {{ $regionButtonText }}
-                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                    </a>
+                    @if ($regionButtonText && $regionButtonUrl)
+                        <a href="{{ $regionButtonUrl }}" class="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 font-600 text-ink transition-colors hover:bg-white">
+                            {{ $regionButtonText }}
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </a>
+                    @endif
                 </div>
-                @if ($regionSection?->image_url)
-                    <img src="{{ $regionSection->image_url }}" alt="{{ $regionSection->image_alt ?? $regionTitle }}" class="aspect-[4/3] w-full rounded-2xl object-cover shadow-lift">
-                @else
-                    <div class="grid grid-cols-2 gap-3">
-                        @foreach ([
-                            ['Kuliner', 'restaurant'],
-                            ['Kemasan Aman', 'inventory'],
-                            ['Minuman', 'local_cafe'],
-                            ['Olahan Pangan', 'bakery_dining'],
-                        ] as $item)
-                            <div class="rounded-2xl border border-white/15 bg-white/10 p-5 transition hover:-translate-y-1 hover:bg-white/20">
-                                <span class="material-symbols-outlined text-[26px] text-accent">{{ $item[1] }}</span>
-                                <p class="mt-2 font-display text-lg font-600">{{ $item[0] }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
+                <div class="grid grid-cols-2 gap-3">
+                    @foreach ([
+                        ['Kuliner', 'restaurant'],
+                        ['Kemasan Aman', 'inventory'],
+                        ['Minuman', 'local_cafe'],
+                        ['Olahan Pangan', 'bakery_dining'],
+                    ] as $item)
+                        <div class="rounded-2xl border border-white/15 bg-white/10 p-5 transition hover:-translate-y-1 hover:bg-white/20">
+                            <span class="material-symbols-outlined text-[26px] text-accent">{{ $item[1] }}</span>
+                            <p class="mt-2 font-display text-lg font-600">{{ $item[0] }}</p>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
     </section>

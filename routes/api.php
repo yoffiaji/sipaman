@@ -46,7 +46,9 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->name('api.user
 });
 
 Route::middleware(['auth:sanctum', 'role:admin,super_admin'])->prefix('admin')->name('api.admin.')->group(function () {
-    Route::apiResource('produk', AdminProductController::class)->parameters(['produk' => 'produk']);
+    Route::apiResource('produk', AdminProductController::class)
+        ->parameters(['produk' => 'produk'])
+        ->only(['index', 'show']);
 
     Route::post('/produk/import/rekap-pirt', [AdminProductImportController::class, 'rekapPirt'])->name('produk.import-rekap-pirt');
     Route::post('/produk/import/status-komitmen', [AdminProductVerificationController::class, 'import'])->name('produk.import-status-komitmen');

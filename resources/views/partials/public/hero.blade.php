@@ -6,8 +6,10 @@
     $heroContent = $hero?->konten ?: 'Temukan produk PIRT, pelaku usaha, dan potensi UMKM pangan aman dari Karanganyar dalam satu katalog yang mudah dicari.';
     $heroImage = $hero?->image_url ?: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=80';
     $heroImageAlt = $hero?->image_alt ?: 'Produk pangan aman Karanganyar';
-    $heroButtonText = $hero?->button_text ?: 'Lihat Produk';
-    $heroButtonUrl = $hero?->button_url ?: route('products.index');
+    $heroButtonText = $hero ? $hero->button_text : 'Lihat Produk';
+    $heroButtonUrl = $hero ? $hero->button_url : route('products.index');
+    $heroSecondaryButtonText = $hero ? $hero->secondary_button_text : 'Lihat UMKM';
+    $heroSecondaryButtonUrl = $hero ? $hero->secondary_button_url : route('umkm.index');
 @endphp
 
 @if ($showHero)
@@ -33,10 +35,12 @@
                                 <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
                             </a>
                         @endif
-                        <a href="{{ route('umkm.index') }}" class="inline-flex items-center gap-2 rounded-full border border-outline-variant px-5 py-3 font-600 text-primary transition-colors hover:bg-white">
-                            Lihat UMKM
-                            <span class="material-symbols-outlined text-[20px]">storefront</span>
-                        </a>
+                        @if ($heroSecondaryButtonText && $heroSecondaryButtonUrl)
+                            <a href="{{ $heroSecondaryButtonUrl }}" class="inline-flex items-center gap-2 rounded-full border border-outline-variant px-5 py-3 font-600 text-primary transition-colors hover:bg-white">
+                                {{ $heroSecondaryButtonText }}
+                                <span class="material-symbols-outlined text-[20px]">storefront</span>
+                            </a>
+                        @endif
                     </div>
 
                     <form action="{{ route('products.index') }}" method="GET" class="rise mt-8 grid max-w-2xl gap-2.5 rounded-3xl border border-outline-variant bg-white p-2.5 shadow-lift md:grid-cols-[1fr_200px_auto]" style="animation-delay:.24s">
