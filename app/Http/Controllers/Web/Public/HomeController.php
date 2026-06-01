@@ -3,18 +3,22 @@
 namespace App\Http\Controllers\Web\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\LandingPageContent;
 use App\Models\Produk;
+use App\Services\LandingPageContentService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
+    public function __construct(private LandingPageContentService $landingPageContentService)
+    {
+    }
+
     public function index(): View
     {
         $contents = Schema::hasTable('landing_page_contents')
-            ? LandingPageContent::all()->keyBy('section_key')
+            ? $this->landingPageContentService->managedSections(false)->keyBy('section_key')
             : collect();
 
         $featuredProducts = Schema::hasTable('produks')
