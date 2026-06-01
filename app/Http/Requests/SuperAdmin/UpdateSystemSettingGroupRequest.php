@@ -106,6 +106,11 @@ class UpdateSystemSettingGroupRequest extends FormRequest
         return preg_match('/^[A-Za-z0-9_-]+$/', $anchor) ? $anchor : 'settings-' . $this->groupKey();
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return route('super-admin.settings.index') . '#' . $this->returnAnchor();
+    }
+
     private function definitionsForGroup(): array
     {
         return collect(SystemSettingCatalog::definitions())

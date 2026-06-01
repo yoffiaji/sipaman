@@ -1,4 +1,6 @@
-import axios from 'axios';
-window.axios = axios;
-
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+// File bootstrap JavaScript global.
+//
+// SIPAMAN saat ini masih memakai Blade form biasa,
+// jadi axios belum diperlukan.
+// Kalau nanti butuh AJAX/API request dari JavaScript,
+// baru install dan konfigurasi axios di sini.

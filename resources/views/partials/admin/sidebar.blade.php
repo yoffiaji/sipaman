@@ -46,17 +46,28 @@
             </a>
         </div>
 
-        <nav id="admin-sidebar-scroll" class="scrollbar-none flex-1 space-y-5 overflow-y-auto px-4 py-5" aria-label="Navigasi admin">
+        <nav
+            id="admin-sidebar-scroll"
+            class="scrollbar-none flex-1 space-y-5 overflow-y-auto px-4 py-5"
+            style="visibility: hidden;"
+            aria-label="Navigasi admin"
+        >
             @foreach($groups as $groupLabel => $items)
                 <div>
-                    <p class="px-3.5 pb-2 text-[10px] font-700 uppercase tracking-[0.16em] text-surface/45">{{ $groupLabel }}</p>
+                    <p class="px-3.5 pb-2 text-[10px] font-700 uppercase tracking-[0.16em] text-surface/45">
+                        {{ $groupLabel }}
+                    </p>
+
                     <div class="space-y-1">
                         @foreach($items as $item)
                             @php($active = request()->routeIs($item['active']))
-                            <a href="{{ route($item['route']) }}"
-                               @if($active) aria-current="page" @endif
-                               data-sidebar-active="{{ $active ? 'true' : 'false' }}"
-                               class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-600 transition-colors {{ $active ? 'bg-accent text-primary shadow-soft' : 'text-surface/70 hover:bg-surface/10 hover:text-surface' }}">
+
+                            <a
+                                href="{{ route($item['route']) }}"
+                                @if($active) aria-current="page" @endif
+                                data-sidebar-active="{{ $active ? 'true' : 'false' }}"
+                                class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-600 transition-colors {{ $active ? 'bg-accent text-primary shadow-soft' : 'text-surface/70 hover:bg-surface/10 hover:text-surface' }}"
+                            >
                                 <span class="material-symbols-outlined text-[20px]">{{ $item['icon'] }}</span>
                                 {{ $item['label'] }}
                             </a>
@@ -66,14 +77,55 @@
             @endforeach
         </nav>
 
+        <script>
+            (function () {
+                const sidebar = document.getElementById('admin-sidebar-scroll');
+
+                if (!sidebar) {
+                    return;
+                }
+
+                const activeItem = sidebar.querySelector('[data-sidebar-active="true"]');
+
+                if (activeItem) {
+                    const padding = 16;
+                    const activeTop = activeItem.offsetTop;
+                    const activeBottom = activeTop + activeItem.offsetHeight;
+                    const visibleTop = sidebar.scrollTop;
+                    const visibleBottom = visibleTop + sidebar.clientHeight;
+
+                    if (activeTop < visibleTop + padding) {
+                        sidebar.scrollTop = Math.max(activeTop - padding, 0);
+                    } else if (activeBottom > visibleBottom - padding) {
+                        sidebar.scrollTop = Math.max(activeBottom - sidebar.clientHeight + padding, 0);
+                    }
+                }
+
+                sidebar.style.visibility = 'visible';
+            })();
+        </script>
+
+        <noscript>
+            <style>
+                #admin-sidebar-scroll {
+                    visibility: visible !important;
+                }
+            </style>
+        </noscript>
+
         <div class="border-t border-surface/10 px-4 py-4">
             <div class="flex items-center gap-3 rounded-xl bg-surface/10 px-3.5 py-3">
                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-accent/25 text-sm font-700 text-accent">
                     {{ strtoupper(substr(auth()->user()?->nama ?? 'A', 0, 1)) }}
                 </span>
+
                 <div class="min-w-0">
-                    <p class="truncate text-sm font-600 text-surface">{{ auth()->user()?->nama ?? 'Admin' }}</p>
-                    <p class="eyebrow truncate text-[9px] font-600 text-surface/55">{{ str_replace('_', ' ', $role ?? 'admin') }}</p>
+                    <p class="truncate text-sm font-600 text-surface">
+                        {{ auth()->user()?->nama ?? 'Admin' }}
+                    </p>
+                    <p class="eyebrow truncate text-[9px] font-600 text-surface/55">
+                        {{ str_replace('_', ' ', $role ?? 'admin') }}
+                    </p>
                 </div>
             </div>
         </div>

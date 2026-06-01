@@ -1,3 +1,214 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@source "../views/**/*.blade.php";
+@source "../js/**/*.js";
+@source "../../storage/framework/views/*.php";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+
+@theme {
+    --color-primary: #0d9488;
+    --color-primary-container: #0f766e;
+    --color-primary-soft: #d6f5f0;
+
+    --color-secondary: #f97316;
+    --color-secondary-soft: #ffe9d5;
+
+    --color-accent: #fbbf24;
+
+    --color-surface: #f3faf8;
+    --color-surface-container: #e6f4f1;
+    --color-surface-container-low: #edf8f6;
+    --color-surface-variant: #dcefeb;
+
+    --color-on-surface: #16302c;
+    --color-on-surface-variant: #4c635e;
+
+    --color-outline: #8aa6a0;
+    --color-outline-variant: #c9e0db;
+
+    --color-ink: #16302c;
+
+    --font-display: "Sora", sans-serif;
+    --font-body: "Plus Jakarta Sans", sans-serif;
+
+    --radius-xl: 0.95rem;
+    --radius-2xl: 1.3rem;
+    --radius-3xl: 1.75rem;
+
+    --shadow-soft: 0 2px 4px rgba(13, 148, 136, 0.05), 0 12px 28px -14px rgba(13, 148, 136, 0.22);
+    --shadow-lift: 0 6px 12px rgba(13, 148, 136, 0.08), 0 28px 56px -22px rgba(13, 148, 136, 0.35);
+}
+
+body {
+    font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-display {
+    font-family: var(--font-display);
+}
+
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    vertical-align: middle;
+}
+
+.eyebrow {
+    font-family: var(--font-body);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Admin legacy utility remap
+|--------------------------------------------------------------------------
+| Dibuat scoped ke .admin-shell supaya tidak mengubah tampilan public page.
+| Ini menggantikan inline style lama di layouts/admin.blade.php.
+*/
+
+/* surfaces */
+.admin-shell .bg-white {
+    background-color: #ffffff !important;
+}
+
+.admin-shell .bg-slate-50 {
+    background-color: #edf8f6 !important;
+}
+
+.admin-shell .bg-slate-100 {
+    background-color: #e6f4f1 !important;
+}
+
+.admin-shell .file\:bg-slate-100::file-selector-button {
+    background-color: #d6f5f0 !important;
+}
+
+.admin-shell .hover\:file\:bg-slate-200:hover::file-selector-button {
+    background-color: #b9ebe3 !important;
+}
+
+/* primary action surfaces */
+.admin-shell .bg-slate-900 {
+    background-color: #0d9488 !important;
+}
+
+.admin-shell .hover\:bg-slate-800:hover {
+    background-color: #0f766e !important;
+}
+
+.admin-shell .hover\:bg-slate-700:hover {
+    background-color: #0f766e !important;
+}
+
+.admin-shell .bg-blue-700 {
+    background-color: #0d9488 !important;
+}
+
+.admin-shell .hover\:bg-blue-800:hover {
+    background-color: #0f766e !important;
+}
+
+.admin-shell .bg-blue-50 {
+    background-color: #d6f5f0 !important;
+}
+
+/* borders */
+.admin-shell .border-slate-100 {
+    border-color: #dcefeb !important;
+}
+
+.admin-shell .border-slate-200 {
+    border-color: #c9e0db !important;
+}
+
+.admin-shell .border-slate-300 {
+    border-color: #bcd8d2 !important;
+}
+
+.admin-shell .border-blue-100 {
+    border-color: #c9e0db !important;
+}
+
+/* text */
+.admin-shell .text-slate-500 {
+    color: #4c635e !important;
+}
+
+.admin-shell .text-slate-600 {
+    color: #3f5651 !important;
+}
+
+.admin-shell .text-slate-700 {
+    color: #324a45 !important;
+}
+
+.admin-shell .text-slate-800 {
+    color: #243b37 !important;
+}
+
+.admin-shell .text-slate-900 {
+    color: #16302c !important;
+}
+
+.admin-shell .text-blue-700 {
+    color: #0d9488 !important;
+}
+
+.admin-shell .text-blue-800 {
+    color: #0f766e !important;
+}
+
+.admin-shell .hover\:text-blue-900:hover {
+    color: #0f766e !important;
+}
+
+/* focus rings */
+.admin-shell .focus\:border-slate-900:focus {
+    border-color: #0d9488 !important;
+}
+
+.admin-shell .focus\:ring-slate-900:focus {
+    --tw-ring-color: #0d9488 !important;
+}
+
+.admin-shell .text-slate-900.rounded,
+.admin-shell .text-slate-900[type="checkbox"] {
+    color: #0d9488 !important;
+}
+
+/* alerts */
+.admin-shell .bg-emerald-50 {
+    background-color: #d6f5ec !important;
+}
+
+.admin-shell .text-emerald-700 {
+    color: #047857 !important;
+}
+
+.admin-shell .text-amber-700 {
+    color: #b45309 !important;
+}
+
+.admin-shell .bg-amber-50 {
+    background-color: #fef3da !important;
+}
+
+/* card shadow */
+.admin-shell .shadow-sm {
+    box-shadow: 0 2px 4px rgba(13, 148, 136, 0.05), 0 12px 28px -14px rgba(13, 148, 136, 0.22) !important;
+}
