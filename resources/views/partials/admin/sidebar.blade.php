@@ -77,34 +77,6 @@
             @endforeach
         </nav>
 
-        <script>
-            (function () {
-                const sidebar = document.getElementById('admin-sidebar-scroll');
-
-                if (!sidebar) {
-                    return;
-                }
-
-                const activeItem = sidebar.querySelector('[data-sidebar-active="true"]');
-
-                if (activeItem) {
-                    const padding = 16;
-                    const activeTop = activeItem.offsetTop;
-                    const activeBottom = activeTop + activeItem.offsetHeight;
-                    const visibleTop = sidebar.scrollTop;
-                    const visibleBottom = visibleTop + sidebar.clientHeight;
-
-                    if (activeTop < visibleTop + padding) {
-                        sidebar.scrollTop = Math.max(activeTop - padding, 0);
-                    } else if (activeBottom > visibleBottom - padding) {
-                        sidebar.scrollTop = Math.max(activeBottom - sidebar.clientHeight + padding, 0);
-                    }
-                }
-
-                sidebar.style.visibility = 'visible';
-            })();
-        </script>
-
         <noscript>
             <style>
                 #admin-sidebar-scroll {

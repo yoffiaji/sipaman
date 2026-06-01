@@ -55,10 +55,11 @@ Dev dependencies include Laravel Pail, Pint, Mockery, Collision, and PHPUnit.
 
 ### Frontend asset pipeline
 
-- Vite
-- Tailwind CSS
+- Vite via `laravel-vite-plugin`
+- Tailwind CSS via `@tailwindcss/vite`
 - Blade views
-- `laravel-vite-plugin` is expected in the full frontend package setup.
+- Frontend entry points are declared in `vite.config.js`: `resources/css/app.css` and `resources/js/app.js`.
+- Put shared browser behavior, admin UI behavior, and small page initializers in `resources/js/app.js`; avoid inline Blade scripts unless a page truly needs one-off server-rendered data.
 
 ### Important commands
 
@@ -81,6 +82,14 @@ composer run dev
 ```
 
 Current `composer run dev` runs Laravel server, queue listener, Laravel Pail, and Vite together. Do not change this script unless the task explicitly requires development tooling changes.
+
+Development command from `package.json`:
+
+```bash
+npm run dev
+```
+
+Current `npm run dev` starts Vite only. Use it when only frontend assets/hot reload are needed.
 
 ---
 
