@@ -239,16 +239,15 @@ admin.*
 Current admin routes:
 
 - Dashboard
-- `admin.products.*` resource
+- `admin.products.index/show` only; product data is read-only from the admin UI
 - Rekap PIRT import
-- Product image upload/delete under product detail, guarded to verified products only
 - Dedicated product image management page under `admin.product-images.*`
 - Verifications index/import/read-only detail
 - `admin.jenis-barang.*` resource except show
 - Jenis Barang review page for `Lainnya / Perlu Review`
 - Jenis Barang sync action to reclassify existing products
 - Admin pelaku usaha account management under `admin.pelaku-usaha.*`
-- Landing page index/update
+- Landing page index/edit/update
 - Activity logs
 - Import logs
 
@@ -268,6 +267,7 @@ super-admin.*
 Current super admin routes:
 
 - `super-admin.users.*` resource except show
+- `super-admin.settings.update-group`
 - `super-admin.settings.index/update`
 - `super-admin.audit-trails.index`
 
@@ -311,12 +311,13 @@ Admin API uses middleware:
 
 Current admin API routes:
 
-- `apiResource /api/admin/produk`
+- `GET /api/admin/produk`
+- `GET /api/admin/produk/{produk}`
 - Rekap PIRT import
 - Status Komitmen import
 - Status Komitmen import is the only verification-status API path; manual update/reject endpoints are not registered.
 - Product image upload/delete, guarded to verified products only
-- Landing page admin index/update
+- Landing page admin index/update for managed fixed-layout sections
 
 Super admin API uses middleware:
 
@@ -389,6 +390,8 @@ Rules:
 - Public product detail must abort 404 when product is not verified.
 - Public product cards should tolerate missing images.
 - Public product filters must use normalized relational fields when available, not raw imported strings.
+- Public navbar and footer labels/content must read from `SystemSettings` with safe fallbacks.
+- Public navbar routes remain fixed by code; super admin may only edit the logo, site name/tagline, and menu labels from System Settings.
 
 Current behavior:
 
@@ -447,7 +450,7 @@ Important scopes:
 
 ### 8.1 Official/legal data vs display data
 
-Official PIRT data comes from imports. Verification status is updated through Status Pemenuhan Komitmen import, not manual admin web/API edits. User/pelaku usaha must not edit official/legal fields.
+Official PIRT data comes from imports. Admin/super admin must not create, edit, update, or delete official product records manually from the Produk menu or admin product API. Verification status is updated through Status Pemenuhan Komitmen import, not manual admin web/API edits. User/pelaku usaha must not edit official/legal fields.
 
 Fields that user must not edit:
 
@@ -691,6 +694,7 @@ Current implementation:
 
 - Admin web, admin API, user web, and user API upload flows use `ProductImageService::replaceOne()`.
 - `ProductImageService::replaceOne()` and `delete()` reject changes when the product is not verified.
+- The dedicated admin/super admin **Gambar Produk** page lists only verified products; its search, image-status filters, and statistics are scoped to `Produk::verified()`.
 - Uploading a new image deletes old records/files and stores the new image as primary.
 - User-facing image delete/set-primary routes were removed.
 - UI uses a single active image and “Ganti Gambar” wording.
@@ -707,7 +711,7 @@ When a new image is uploaded:
 4. Save new record as primary.
 5. Ensure public/admin/user display still works when no image exists.
 
-Product images may only be changed after the product is verified. UI should explain this clearly, but the service/controller/API guard is mandatory so direct URL/API access cannot bypass the rule.
+Product images may only be changed after the product is verified. UI should explain this clearly, but the service/controller/API guard is mandatory so direct URL/API access cannot bypass the rule. The operational product image management page must not list unverified products at all.
 
 Implementation note:
 
@@ -816,7 +820,9 @@ Current sidebar groups:
 
 Current implementation:
 
-- `admin.product-images.*` provides the operational **Gambar Produk** page for admin and super admin.
+- Admin product data from the **Produk** menu is read-only. Admin/super admin may list, search, filter, view detail, and import Rekap PIRT, but must not create, edit, update, or delete official product records manually.
+- Admin product create/update/delete web routes and API routes are not part of the active route map. Keep old views/controllers unused unless deliberately reviewed.
+- `admin.product-images.*` provides the operational **Gambar Produk** page for admin and super admin, scoped to verified products only.
 - `admin.pelaku-usaha.*` lets admin/super admin manage only role `user` / pelaku usaha accounts.
 - Legacy `resources/views/admin/users/*` remain unused; do not wire them without review.
 - `Api/Admin/UserManagementController.php` still exists as an API controller but current API routes do not register broad admin user management.
@@ -874,8 +880,10 @@ Current files:
 - `app/Http/Requests/Admin/UpdateLandingPageRequest.php`
 - `database/migrations/2024_01_01_000011_create_landing_page_contents_table.php`
 - `database/migrations/2026_05_27_000002_add_dynamic_fields_to_landing_page_contents_table.php`
+- `database/migrations/2026_06_01_000001_add_secondary_button_to_landing_page_contents_table.php`
 - `database/seeders/LandingPageContentSeeder.php`
 - `resources/views/admin/landing-page/index.blade.php`
+- `resources/views/admin/landing-page/edit.blade.php`
 - public Blade files consuming landing content
 
 Current fields:
@@ -888,11 +896,14 @@ Current fields:
 - `image_alt`
 - `button_text`
 - `button_url`
+- `secondary_button_text`
+- `secondary_button_url`
 - `is_active`
 - `updated_by`
 
 Current service behavior:
 
+- Defines the managed fixed-layout sections and their human-friendly labels.
 - Stores new landing images on public disk.
 - Deletes old image when replaced or removed.
 - Updates `updated_by`.
@@ -903,15 +914,23 @@ Rules:
 - Admin may edit safe content fields only.
 - Admin must not edit section key, route, CSS class, order, or Blade structure.
 - Keep section keys seeded and controlled.
-- Validate `button_url` to only allow `http://`, `https://`, `/`, or `#`.
+- The managed landing page sections are exactly `hero`, `featured_products`, and `region_potential`, in that order.
+- Admin-facing labels are "Banner Utama", "Bagian Produk Terverifikasi", and "Bagian Potensi Wilayah".
+- Only "Banner Utama" may have an editable image. Other sections edit text, button, and active status only.
+- Banner Utama has two managed buttons: primary product button (`button_text` / `button_url`) and secondary UMKM button (`secondary_button_text` / `secondary_button_url`).
+- Sections besides Banner Utama use one button when needed and must not show secondary-button fields.
+- Validate `button_url` and `secondary_button_url` to only allow `http://`, `https://`, `/`, or `#`.
 - Do not store landing page paragraph content in `system_settings`.
 
 Current UI:
 
-- Admin view uses friendly section labels such as "Banner Utama" and does not expose `section_key` as an editable field.
+- Admin Landing Page does not use display previews. Do not show content preview text, button previews, image previews, placeholder previews, example website cards, or a dedicated right-side preview area.
+- Admin index shows simple section cards with section name, function description, website status, last-edited info when available, and an "Edit Bagian" action.
+- Admin edit form uses friendly section labels, manages content fields, and does not expose `section_key` as an editable field.
 - `image_alt` is labeled as "Keterangan gambar".
-- `button_url` is managed through a human-friendly "Tujuan tombol" dropdown for common public pages plus a validated custom-link field.
+- Button URLs are managed through human-friendly dropdowns for common public pages, "Tidak memakai tombol", plus validated custom-link fields.
 - Upload helper text includes recommended image size/ratio.
+- Only the "Banner Utama" edit form shows image upload/removal controls; other managed sections do not show image inputs.
 
 ---
 
@@ -920,9 +939,12 @@ Current UI:
 Current files:
 
 - `app/Models/SystemSetting.php`
+- `app/Services/SystemSettingService.php`
+- `app/Support/SystemSettingCatalog.php`
 - `app/Support/SystemSettings.php`
 - `Web/SuperAdmin/SystemSettingController.php`
 - `Api/SuperAdmin/SystemSettingController.php`
+- `app/Http/Requests/SuperAdmin/UpdateSystemSettingGroupRequest.php`
 - `app/Http/Requests/SuperAdmin/UpdateSystemSettingRequest.php`
 - `database/migrations/2026_05_12_065652_create_system_settings_table.php`
 - `database/seeders/SystemSettingSeeder.php`
@@ -930,24 +952,37 @@ Current files:
 
 Current seeded keys:
 
+- `site_logo_path`
 - `site_name`
 - `site_tagline`
-- `footer_text`
+- `nav_home_label`
+- `nav_products_label`
+- `nav_umkm_label`
 - `contact_email`
-- `contact_whatsapp`
+- `contact_phone`
 - `office_address`
 - `office_hours`
-- `logo_path`
+- `footer_copyright`
+- `footer_verified_text`
 - `default_pagination`
 - `import_max_file_size_kb`
 
 Rules:
 
 - Use system settings for global non-secret configuration only.
+- System Settings controls website identity, public navbar labels, public footer/contact text, and safe global system configuration.
+- Landing Page content must not be mixed into System Settings.
+- Super admin may edit `site_logo_path`, `site_name`, `site_tagline`, `nav_home_label`, `nav_products_label`, `nav_umkm_label`, contact/footer fields, and safe system values.
+- Logo upload is stored on the `public` disk as a relative path, validates JPG/PNG/WebP max 2 MB, and replaces/deletes the previous managed upload.
+- Navbar menu routes (`/`, `/products`, `/umkm`) are fixed in code; settings only change the visible labels.
 - Do not store passwords, tokens, API keys, private keys, or secrets in system settings.
 - Secrets belong in `.env`.
 - `deskripsi` is a helper explanation for admins/super admins, not public content.
 - `SystemSettings::forget()` must be called after setting updates because settings are cached.
+- `default_pagination` must be read through the shared settings helper/cache and used by relevant product listing pages instead of hardcoded pagination numbers.
+- `default_pagination` must normalize to a safe integer from 3 to 100 and fall back to 12 when empty or invalid.
+- The default footer copyright is `© 2026 SIPAMAN Kabupaten Karanganyar.`.
+- After saving a System Settings group, the web page must return to that same group/section instead of jumping to the top.
 
 Current request already blocks keys containing:
 
@@ -959,7 +994,10 @@ Current request already blocks keys containing:
 
 Current UI:
 
-- `deskripsi` is shown as read-only `Keterangan Fungsi Pengaturan`.
+- System Settings are grouped as "Identitas Website", "Navigasi Website", "Kontak & Footer", "Tampilan Data", and "Pengaturan Sistem".
+- Technical keys may appear only as small helper text, not as the main admin label.
+- `deskripsi` is shown as compact helper text below inputs, not as a primary editable field or large box.
+- The web UI saves settings per group and uses anchors/return targets to keep the user near the group that was saved.
 - Update validation prohibits editing `deskripsi` from the settings form/API request.
 
 ---
@@ -1049,6 +1087,14 @@ Landing page images:
 - Store paths, not absolute machine paths.
 - Delete old image when replaced/removed.
 - Validate image type and size.
+- Only the `hero` / "Banner Utama" landing section has an editable image.
+
+Website logo:
+
+- Use `SystemSettingService`.
+- Store the uploaded logo on the Laravel `public` disk as a relative path in `site_logo_path`.
+- Validate JPG/PNG/WebP max 2 MB and recommend a 1:1 logo.
+- Replacing the logo deletes the previous managed upload from storage.
 
 Spreadsheet imports:
 
@@ -1752,6 +1798,7 @@ Coverage note: the functional sections above define the main behavior and respon
 - `app/Http/Requests/Admin/UpdateProductRequest.php`
 - `app/Http/Requests/Admin/UpdateProductVerificationRequest.php`
 - `app/Http/Requests/SuperAdmin/StoreUserRequest.php`
+- `app/Http/Requests/SuperAdmin/UpdateSystemSettingGroupRequest.php`
 - `app/Http/Requests/SuperAdmin/UpdateSystemSettingRequest.php`
 - `app/Http/Requests/SuperAdmin/UpdateUserRequest.php`
 
@@ -1793,12 +1840,14 @@ Coverage note: the functional sections above define the main behavior and respon
 - `app/Services/ProductImageService.php`
 - `app/Services/ProductImportService.php`
 - `app/Services/ProductVerificationService.php`
+- `app/Services/SystemSettingService.php`
 
 ### Support classes
 
 - `app/Support/Imports/SpreadsheetFileResolver.php`
 - `app/Support/Imports/SpreadsheetTemplateValidator.php`
 - `app/Support/ProductTypeClassifier.php`
+- `app/Support/SystemSettingCatalog.php`
 - `app/Support/SystemSettings.php`
 
 ### Import classes
@@ -1855,6 +1904,7 @@ Coverage note: the functional sections above define the main behavior and respon
 - `database/migrations/2026_05_29_000001_add_normalization_fields_to_jenis_barangs_table.php`
 - `database/migrations/2026_05_29_000002_create_jenis_barang_aliases_table.php`
 - `database/migrations/2026_05_31_000001_enforce_single_product_image.php`
+- `database/migrations/2026_06_01_000001_add_secondary_button_to_landing_page_contents_table.php`
 
 ### Seeders
 
@@ -2004,6 +2054,7 @@ The current uploaded code snapshot contains **194 files** under `app/`, `routes/
 - `app/Http/Requests/Admin/UpdateProductRequest.php`
 - `app/Http/Requests/Admin/UpdateProductVerificationRequest.php`
 - `app/Http/Requests/SuperAdmin/StoreUserRequest.php`
+- `app/Http/Requests/SuperAdmin/UpdateSystemSettingGroupRequest.php`
 - `app/Http/Requests/SuperAdmin/UpdateSystemSettingRequest.php`
 - `app/Http/Requests/SuperAdmin/UpdateUserRequest.php`
 - `app/Imports/PirtCommitmentStatusImport.php`
@@ -2037,9 +2088,11 @@ The current uploaded code snapshot contains **194 files** under `app/`, `routes/
 - `app/Services/ProductImageService.php`
 - `app/Services/ProductImportService.php`
 - `app/Services/ProductVerificationService.php`
+- `app/Services/SystemSettingService.php`
 - `app/Support/Imports/SpreadsheetFileResolver.php`
 - `app/Support/Imports/SpreadsheetTemplateValidator.php`
 - `app/Support/ProductTypeClassifier.php`
+- `app/Support/SystemSettingCatalog.php`
 - `app/Support/SystemSettings.php`
 - `app/Traits/LogsAuditTrail.php`
 - `composer.json`
