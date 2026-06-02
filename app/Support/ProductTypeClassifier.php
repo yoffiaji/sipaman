@@ -5,12 +5,15 @@ namespace App\Support;
 use App\Models\JenisBarang;
 use App\Models\JenisBarangAlias;
 use App\Models\Produk;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ProductTypeClassifier
 {
     public const FALLBACK_CATEGORY = 'Lainnya / Perlu Review';
+
+    private ?Collection $activeAliases = null;
 
     private const DEFAULT_DESCRIPTIONS = [
         'Makanan Ringan' => 'Camilan kering, keripik, kerupuk, rengginang, dan snack sejenis.',
@@ -158,7 +161,7 @@ class ProductTypeClassifier
             return null;
         }
 
-        $aliases = JenisBarangAlias::query()
+        $aliases = $this->activeAliases ??= JenisBarangAlias::query()
             ->with('jenisBarang')
             ->where('is_active', true)
             ->whereHas('jenisBarang', fn ($query) => $query->active())

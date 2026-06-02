@@ -146,7 +146,7 @@ class UpdateLandingPageRequest extends FormRequest
                     return;
                 }
 
-                if (! preg_match('/^(https?:\/\/|\/|#)/i', (string) $value)) {
+                if (! preg_match('/^(https?:\/\/|\/(?!\/)|#)/i', (string) $value)) {
                     $fail('Tujuan tombol harus diawali http://, https://, /, atau #.');
                 }
             },

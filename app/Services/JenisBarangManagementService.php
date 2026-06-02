@@ -5,33 +5,40 @@ namespace App\Services;
 use App\Models\JenisBarang;
 use App\Models\JenisBarangAlias;
 use App\Support\ProductTypeClassifier;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class JenisBarangManagementService
 {
-    public function __construct(private ProductTypeClassifier $classifier)
-    {
-    }
+    public function __construct(private ProductTypeClassifier $classifier) {}
 
     public function create(array $data): JenisBarang
     {
-        return DB::transaction(function () use ($data) {
+        $jenisBarang = DB::transaction(function () use ($data) {
             $jenisBarang = JenisBarang::create($this->categoryData($data));
             $this->syncAliases($jenisBarang, $data['aliases'] ?? '');
 
             return $jenisBarang->fresh('aliases');
         });
+
+        $this->forgetCatalogCache();
+
+        return $jenisBarang;
     }
 
     public function update(JenisBarang $jenisBarang, array $data): JenisBarang
     {
-        return DB::transaction(function () use ($jenisBarang, $data) {
+        $updated = DB::transaction(function () use ($jenisBarang, $data) {
             $jenisBarang->update($this->categoryData($data));
             $this->syncAliases($jenisBarang, $data['aliases'] ?? '');
 
             return $jenisBarang->fresh('aliases');
         });
+
+        $this->forgetCatalogCache();
+
+        return $updated;
     }
 
     private function categoryData(array $data): array
@@ -75,5 +82,10 @@ class JenisBarangManagementService
                 ]
             );
         }
+    }
+
+    public function forgetCatalogCache(): void
+    {
+        Cache::forget('jenis_barangs_all');
     }
 }

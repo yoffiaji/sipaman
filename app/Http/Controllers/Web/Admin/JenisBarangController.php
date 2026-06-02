@@ -21,8 +21,7 @@ class JenisBarangController extends Controller
     public function __construct(
         private JenisBarangManagementService $jenisBarangService,
         private ProductTypeClassifier $classifier
-    ) {
-    }
+    ) {}
 
     public function index(): View
     {
@@ -103,6 +102,7 @@ class JenisBarangController extends Controller
 
         $before = $jenisBarang->toArray();
         $jenisBarang->delete();
+        $this->jenisBarangService->forgetCatalogCache();
         $this->logAudit('delete', 'jenis_barangs', $before['id'], $before, null);
 
         return redirect()->route('admin.jenis-barang.index')->with('success', 'Jenis barang berhasil dihapus.');

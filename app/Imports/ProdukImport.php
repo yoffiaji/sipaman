@@ -32,7 +32,9 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
     use Importable;
 
     private int $berhasil = 0;
+
     private int $gagal = 0;
+
     private array $failureDetails = [];
 
     /** Data asli mulai dari baris 5. */
@@ -43,6 +45,8 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
 
     public function collection(Collection $rows): void
     {
+        $classifier = app(ProductTypeClassifier::class);
+
         foreach ($rows as $index => $row) {
             $row = $row->toArray();
             $barisExcel = $index + $this->startRow();
@@ -58,19 +62,19 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
                 // G(6) Cara Penyimpanan, H(7) NIB, I(8) Wilayah,
                 // J(9) Tanggal Pengajuan, K(10) Status OSS,
                 // L(11) No HP, M(12) Nama Pelaku Usaha, N(13) Alamat.
-                $noSppirt       = $this->cleanString($this->valueAt($row, 1));
-                $namaBranding   = $this->cleanString($this->valueAt($row, 2));
+                $noSppirt = $this->cleanString($this->valueAt($row, 1));
+                $namaBranding = $this->cleanString($this->valueAt($row, 2));
                 $kategoriPangan = $this->cleanString($this->valueAt($row, 3));
-                $jenisPangan    = $this->cleanString($this->valueAt($row, 4));
-                $kemasan        = $this->cleanString($this->valueAt($row, 5));
-                $caraPenyimpanan= $this->cleanString($this->valueAt($row, 6));
-                $nib            = $this->cleanString($this->valueAt($row, 7));
-                $wilayah        = $this->cleanString($this->valueAt($row, 8));
+                $jenisPangan = $this->cleanString($this->valueAt($row, 4));
+                $kemasan = $this->cleanString($this->valueAt($row, 5));
+                $caraPenyimpanan = $this->cleanString($this->valueAt($row, 6));
+                $nib = $this->cleanString($this->valueAt($row, 7));
+                $wilayah = $this->cleanString($this->valueAt($row, 8));
                 $tanggalPengajuan = $this->parseTanggal($this->valueAt($row, 9));
-                $statusOss      = $this->cleanString($this->valueAt($row, 10));
-                $noHp           = $this->cleanString($this->valueAt($row, 11));
-                $namaPelakuUsaha= $this->cleanString($this->valueAt($row, 12));
-                $alamat         = $this->cleanString($this->valueAt($row, 13));
+                $statusOss = $this->cleanString($this->valueAt($row, 10));
+                $noHp = $this->cleanString($this->valueAt($row, 11));
+                $namaPelakuUsaha = $this->cleanString($this->valueAt($row, 12));
+                $alamat = $this->cleanString($this->valueAt($row, 13));
 
                 // Skip baris benar-benar kosong (merge cell / lanjutan header)
                 if (! $noSppirt && ! $namaBranding && ! $namaPelakuUsaha && ! $alamat) {
@@ -85,6 +89,7 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
                         'Baris dilewati: No SPPIRT, nama branding, nama pelaku usaha, dan alamat wajib diisi.',
                         $row
                     );
+
                     continue;
                 }
 
@@ -92,28 +97,28 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
                 // jenis_barang_id diarahkan ke kategori tampilan yang sudah
                 // dinormalisasi agar filter publik/admin tidak berisi ratusan
                 // variasi mentah dari Excel.
-                $jenisBarang = app(ProductTypeClassifier::class)->resolve($kategoriPangan, $jenisPangan);
+                $jenisBarang = $classifier->resolve($kategoriPangan, $jenisPangan);
 
                 // Cek apakah produk sudah ada
                 $produkExisting = Produk::where('no_sppirt', $noSppirt)->first();
 
                 $dataUpdate = [
-                    'nama_branding'     => $namaBranding,
-                    'kategori_pangan'   => $kategoriPangan,
-                    'jenis_pangan'      => $jenisPangan,
-                    'kemasan'           => $kemasan,
-                    'cara_penyimpanan'  => $caraPenyimpanan,
-                    'wilayah'           => $wilayah,
-                    'kecamatan_id'      => null, // File rekap tidak punya kolom kecamatan
-                    'jenis_barang_id'   => $jenisBarang?->id,
+                    'nama_branding' => $namaBranding,
+                    'kategori_pangan' => $kategoriPangan,
+                    'jenis_pangan' => $jenisPangan,
+                    'kemasan' => $kemasan,
+                    'cara_penyimpanan' => $caraPenyimpanan,
+                    'wilayah' => $wilayah,
+                    'kecamatan_id' => null, // File rekap tidak punya kolom kecamatan
+                    'jenis_barang_id' => $jenisBarang?->id,
                     'nama_pelaku_usaha' => $namaPelakuUsaha,
-                    'alamat'            => $alamat,
-                    'nib'               => $nib,
-                    'no_hp'             => $noHp,
-                    'nama_toko'         => $namaBranding,
-                    'alamat_toko'       => $alamat,
+                    'alamat' => $alamat,
+                    'nib' => $nib,
+                    'no_hp' => $noHp,
+                    'nama_toko' => $namaBranding,
+                    'alamat_toko' => $alamat,
                     'tanggal_pengajuan' => $tanggalPengajuan,
-                    'status_oss'        => $statusOss,
+                    'status_oss' => $statusOss,
                 ];
 
                 if ($produkExisting) {
@@ -133,9 +138,20 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
         }
     }
 
-    public function getBerhasil(): int { return $this->berhasil; }
-    public function getGagal(): int { return $this->gagal; }
-    public function getFailureDetails(): array { return $this->failureDetails; }
+    public function getBerhasil(): int
+    {
+        return $this->berhasil;
+    }
+
+    public function getGagal(): int
+    {
+        return $this->gagal;
+    }
+
+    public function getFailureDetails(): array
+    {
+        return $this->failureDetails;
+    }
 
     // ── Private helpers ───────────────────────────────────────
 
@@ -151,6 +167,7 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
                 return false;
             }
         }
+
         return true;
     }
 
@@ -163,6 +180,7 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
             return number_format((float) $value, 0, '', '');
         }
         $value = trim((string) $value);
+
         return $value === '' ? null : $value;
     }
 
@@ -182,8 +200,10 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
             foreach (['d-m-Y', 'd/m/Y', 'Y-m-d', 'm/d/Y'] as $format) {
                 try {
                     return Carbon::createFromFormat($format, $value)->toDateString();
-                } catch (\Throwable) {}
+                } catch (\Throwable) {
+                }
             }
+
             return Carbon::parse($value)->toDateString();
         } catch (\Throwable) {
             return null;
@@ -194,10 +214,10 @@ class ProdukImport implements SkipsEmptyRows, ToCollection, WithStartRow
     {
         $this->gagal++;
         $this->failureDetails[] = [
-            'baris'  => $baris,
-            'kolom'  => $kolom,
+            'baris' => $baris,
+            'kolom' => $kolom,
             'errors' => [$message],
-            'nilai'  => $row,
+            'nilai' => $row,
         ];
     }
 }

@@ -37,7 +37,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'identifier' => 'required|string',
-            'password'   => 'required|string',
+            'password' => 'required|string',
         ]);
 
         $identifier = trim($request->identifier);
@@ -56,7 +56,7 @@ class AuthController extends Controller
         // Pesan khusus supaya pelaku usaha tahu harus minta password ke admin.
         if ($user->needsPasswordSetup()) {
             return response()->json([
-                'message'              => 'Akun Anda belum diaktifkan. Silakan minta password ke admin SIPAMAN.',
+                'message' => 'Akun Anda belum diaktifkan. Silakan minta password ke admin SIPAMAN.',
                 'needs_password_setup' => true,
             ], 403);
         }
@@ -82,8 +82,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login berhasil.',
-            'token'   => $token,
-            'user'    => $this->formatUser($user),
+            'token' => $token,
+            'user' => $this->formatUser($user),
         ]);
     }
 
@@ -128,7 +128,7 @@ class AuthController extends Controller
         } else {
             $data = $request->validate([
                 'nama' => 'sometimes|string|max:150',
-                'email' => "sometimes|nullable|email|max:150|unique:users,email,{$user->id}",
+                'email' => "sometimes|required|email|max:150|unique:users,email,{$user->id}",
                 'password' => ['sometimes', 'confirmed', Password::min(8)],
             ]);
         }
@@ -145,7 +145,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Profil berhasil diperbarui.',
-            'user'    => $this->formatUser($user->fresh()->load('role')),
+            'user' => $this->formatUser($user->fresh()->load('role')),
         ]);
     }
 
@@ -153,10 +153,10 @@ class AuthController extends Controller
     private function formatUser(User $user): array
     {
         $data = [
-            'id'          => $user->id,
-            'nama'        => $user->nama,
-            'nib'         => $user->nib,
-            'role'        => $user->role->nama_role ?? null,
+            'id' => $user->id,
+            'nama' => $user->nama,
+            'nib' => $user->nib,
+            'role' => $user->role->nama_role ?? null,
             'status_akun' => $user->status_akun,
         ];
 
