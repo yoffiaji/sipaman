@@ -26,10 +26,10 @@ class UpdateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nama.prohibited' => 'Nama tidak boleh diubah dari halaman manajemen user.',
-            'email.prohibited' => 'Email tidak boleh diubah dari halaman manajemen user.',
-            'nib.prohibited' => 'NIB tidak boleh diubah dari halaman manajemen user.',
-            'role.prohibited' => 'Role tidak boleh diubah dari halaman manajemen user.',
+            'nama.prohibited' => 'Nama tidak boleh diubah dari halaman Kelola Admin.',
+            'email.prohibited' => 'Email tidak boleh diubah dari halaman Kelola Admin.',
+            'nib.prohibited' => 'NIB tidak boleh diubah dari halaman Kelola Admin.',
+            'role.prohibited' => 'Role tidak boleh diubah dari halaman Kelola Admin.',
         ];
     }
 }

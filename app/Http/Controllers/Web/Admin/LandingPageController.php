@@ -43,6 +43,6 @@ class LandingPageController extends Controller
         $updated = $this->landingPageContentService->update($landingPage, $request->contentData(), auth()->id());
         $this->logAudit('update', 'landing_page_contents', $landingPage->id, $before, $updated->toArray());
 
-        return redirect()->route('admin.landing-page.index')->with('success', 'Konten landing page berhasil diperbarui.');
+        return redirect()->route('panel.landing-page.index')->with('success', 'Konten landing page berhasil diperbarui.');
     }
 }

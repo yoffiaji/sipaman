@@ -57,7 +57,7 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('admin.landing-page.edit', $content) }}" class="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+                        <a href="{{ route('panel.landing-page.edit', $content) }}" class="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
                             <span class="material-symbols-outlined text-[18px]">edit</span>
                             Edit Bagian
                         </a>

@@ -42,19 +42,10 @@
             <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ str_replace('_', ' ', $user->role?->nama_role ?? '-') }}</div>
         </div>
         <div>
-            <label class="text-sm font-semibold">NIB Login</label>
-            <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ $user->nib ?: '-' }}</div>
-            @if (($user->role?->nama_role ?? null) === 'user')
-                <p class="mt-1 text-xs text-slate-500">Pelaku usaha login memakai NIB ini.</p>
-            @endif
+            <label class="text-sm font-semibold">Email Login</label>
+            <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ $user->email ?: '-' }}</div>
+            <p class="mt-1 text-xs text-slate-500">Admin login memakai email ini.</p>
         </div>
-        @if (($user->role?->nama_role ?? null) !== 'user')
-            <div>
-                <label class="text-sm font-semibold">Email Login</label>
-                <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{{ $user->email ?: '-' }}</div>
-                <p class="mt-1 text-xs text-slate-500">Admin login memakai email ini.</p>
-            </div>
-        @endif
         <div>
             <label class="text-sm font-semibold">Password Baru</label>
             <input type="password" name="password" class="mt-1 w-full rounded-lg border-slate-300" placeholder="Kosongkan jika tidak diganti">

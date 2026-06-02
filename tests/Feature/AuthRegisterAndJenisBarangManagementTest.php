@@ -28,14 +28,14 @@ class AuthRegisterAndJenisBarangManagementTest extends TestCase
         $admin = $this->createAdmin();
 
         $this->actingAs($admin)
-            ->post(route('admin.jenis-barang.store'), [
+            ->post(route('panel.jenis-barang.store'), [
                 'nama_jenis' => 'Keripik Tradisional',
                 'slug' => '',
                 'deskripsi' => 'Camilan kering produksi UMKM.',
                 'is_active' => '1',
                 'aliases' => "Keripik\nKripik",
             ])
-            ->assertRedirect(route('admin.jenis-barang.index'))
+            ->assertRedirect(route('panel.jenis-barang.index'))
             ->assertSessionHas('success');
 
         $jenisBarang = JenisBarang::where('slug', 'keripik-tradisional')->firstOrFail();
@@ -67,13 +67,13 @@ class AuthRegisterAndJenisBarangManagementTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->from(route('admin.jenis-barang.create'))
-            ->post(route('admin.jenis-barang.store'), [
+            ->from(route('panel.jenis-barang.create'))
+            ->post(route('panel.jenis-barang.store'), [
                 'nama_jenis' => 'Keripik Tradisional',
                 'slug' => '',
                 'is_active' => '1',
             ])
-            ->assertRedirect(route('admin.jenis-barang.create'))
+            ->assertRedirect(route('panel.jenis-barang.create'))
             ->assertSessionHasErrors('slug');
     }
 
@@ -94,14 +94,14 @@ class AuthRegisterAndJenisBarangManagementTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->put(route('admin.jenis-barang.update', $jenisBarang), [
+            ->put(route('panel.jenis-barang.update', $jenisBarang), [
                 'nama_jenis' => 'Kategori Baru',
                 'slug' => 'Kategori Baru',
                 'deskripsi' => 'Deskripsi baru.',
                 'is_active' => '0',
                 'aliases' => "Alias Baru\nAlias Kedua",
             ])
-            ->assertRedirect(route('admin.jenis-barang.index'))
+            ->assertRedirect(route('panel.jenis-barang.index'))
             ->assertSessionHas('success');
 
         $jenisBarang->refresh();
@@ -146,14 +146,14 @@ class AuthRegisterAndJenisBarangManagementTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->from(route('admin.jenis-barang.edit', $target))
-            ->put(route('admin.jenis-barang.update', $target), [
+            ->from(route('panel.jenis-barang.edit', $target))
+            ->put(route('panel.jenis-barang.update', $target), [
                 'nama_jenis' => 'Target Edit',
                 'slug' => 'target-edit',
                 'is_active' => '1',
                 'aliases' => 'keripik',
             ])
-            ->assertRedirect(route('admin.jenis-barang.edit', $target))
+            ->assertRedirect(route('panel.jenis-barang.edit', $target))
             ->assertSessionHasErrors('aliases');
 
         $this->assertDatabaseHas('jenis_barang_aliases', [

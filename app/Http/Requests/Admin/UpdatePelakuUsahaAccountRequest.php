@@ -30,7 +30,7 @@ class UpdatePelakuUsahaAccountRequest extends FormRequest
             'nama.prohibited' => 'Nama pelaku usaha mengikuti data PIRT dan tidak dapat diubah dari halaman ini.',
             'email.prohibited' => 'Akun pelaku usaha tidak memakai email sebagai identitas login.',
             'nib.prohibited' => 'NIB tidak dapat diubah dari halaman ini.',
-            'role.prohibited' => 'Role akun pelaku usaha tidak dapat diubah dari halaman admin.',
+            'role.prohibited' => 'Role akun pelaku usaha tidak dapat diubah dari halaman Kelola Pelaku Usaha.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'password.min' => 'Password minimal 8 karakter.',
             'status_akun.required' => 'Status akun wajib dipilih.',

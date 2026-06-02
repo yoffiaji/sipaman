@@ -38,7 +38,7 @@
     <div class="space-y-5">
         <div class="flex flex-col justify-between gap-3 md:flex-row md:items-center">
             <div>
-                <a href="{{ route('admin.landing-page.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900">
+                <a href="{{ route('panel.landing-page.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900">
                     <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                     Kembali ke daftar bagian
                 </a>
@@ -61,7 +61,7 @@
             Admin hanya mengubah isi konten yang aman. Layout, urutan bagian, route teknis, dan struktur tampilan dikunci oleh sistem.
         </x-alert>
 
-        <form action="{{ route('admin.landing-page.update', $landingPage) }}" method="POST" enctype="multipart/form-data" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form action="{{ route('panel.landing-page.update', $landingPage) }}" method="POST" enctype="multipart/form-data" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             @csrf
             @method('PUT')
 
@@ -181,7 +181,7 @@
 
                 <div class="mt-6 flex flex-wrap gap-3">
                     <button class="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white">Simpan Konten</button>
-                    <a href="{{ route('admin.landing-page.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700">Batal</a>
+                    <a href="{{ route('panel.landing-page.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700">Batal</a>
                 </div>
             </div>
         </form>

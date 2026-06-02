@@ -67,7 +67,7 @@
                     </p>
                     <p class="mt-1 text-sm text-amber-700 font-medium">
                         Produk baru yang diimport akan berstatus <span class="font-bold">Belum Verifikasi</span>.
-                        Lakukan verifikasi di halaman <a href="{{ route('admin.verifications.index') }}" class="underline">Verifikasi Produk</a>.
+                        Lakukan verifikasi di halaman <a href="{{ route('panel.verifications.index') }}" class="underline">Verifikasi Produk</a>.
                     </p>
                     @if ($lastImport)
                         <p class="mt-2 text-sm text-slate-500">
@@ -78,7 +78,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('admin.products.import.rekap-pirt') }}" method="POST" enctype="multipart/form-data" class="mt-5">
+            <form action="{{ route('panel.products.import.rekap-pirt') }}" method="POST" enctype="multipart/form-data" class="mt-5">
                 @csrf
                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
                     <input
@@ -104,7 +104,7 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('admin.products.index') }}" class="mt-5 grid gap-3 md:grid-cols-[1fr_190px_190px_190px_auto]">
+            <form method="GET" action="{{ route('panel.products.index') }}" class="mt-5 grid gap-3 md:grid-cols-[1fr_190px_190px_190px_auto]">
                 <input
                     type="search"
                     name="search"
@@ -169,7 +169,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <a class="font-semibold text-blue-700 hover:text-blue-900" href="{{ route('admin.products.show', $product) }}">Detail</a>
+                                    <a class="font-semibold text-blue-700 hover:text-blue-900" href="{{ route('panel.products.show', $product) }}">Detail</a>
                                 </td>
                             </tr>
                         @empty

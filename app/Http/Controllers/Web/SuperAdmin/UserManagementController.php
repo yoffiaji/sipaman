@@ -20,14 +20,13 @@ class UserManagementController extends Controller
     public function index(Request $request): View
     {
         $users = User::with('role')
+            ->whereHas('role', fn ($query) => $query->where('nama_role', 'admin'))
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->query('search');
                 $query->where(fn ($q) => $q
                     ->where('nama', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('nib', 'like', "%{$search}%"));
+                    ->orWhere('email', 'like', "%{$search}%"));
             })
-            ->when($request->filled('role'), fn ($query) => $query->whereHas('role', fn ($q) => $q->where('nama_role', $request->query('role'))))
             ->orderBy('nama')
             ->paginate(15)
             ->withQueryString();
@@ -62,7 +61,7 @@ class UserManagementController extends Controller
     public function edit(User $user): View
     {
         abort_if($user->id === auth()->id(), 403, 'Akun sendiri tidak bisa diedit dari halaman ini.');
-        abort_if(($user->role->nama_role ?? null) === 'super_admin', 403, 'Akun super admin tidak bisa diedit.');
+        abort_unless(($user->role->nama_role ?? null) === 'admin', 403, 'Halaman ini hanya untuk mengelola akun admin.');
 
         $user->load('role');
 
@@ -72,7 +71,7 @@ class UserManagementController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         abort_if($user->id === auth()->id(), 403, 'Akun sendiri tidak bisa diedit dari halaman ini.');
-        abort_if(($user->role->nama_role ?? null) === 'super_admin', 403, 'Akun super admin tidak bisa diedit.');
+        abort_unless(($user->role->nama_role ?? null) === 'admin', 403, 'Halaman ini hanya untuk mengelola akun admin.');
 
         $before = $user->load('role')->toArray();
         $data = $request->validated();

@@ -40,5 +40,5 @@
 
 <div class="mt-6 flex gap-3">
     <button class="rounded-lg bg-slate-900 px-5 py-2.5 font-semibold text-white">Simpan</button>
-    <a href="{{ route('admin.jenis-barang.index') }}" class="rounded-lg border border-slate-300 px-5 py-2.5 font-semibold">Batal</a>
+    <a href="{{ route('panel.jenis-barang.index') }}" class="rounded-lg border border-slate-300 px-5 py-2.5 font-semibold">Batal</a>
 </div>

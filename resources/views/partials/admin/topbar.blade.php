@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between gap-4">
         <div>
             <p class="eyebrow text-[10px] font-600 text-secondary">Panel Pengelola</p>
-            <h1 class="font-display text-xl font-600 text-primary">@yield('page-title', 'Admin')</h1>
+            <h1 class="font-display text-xl font-600 text-primary">@yield('page-title', 'Panel Pengelola')</h1>
         </div>
 
         <div class="flex items-center gap-3">

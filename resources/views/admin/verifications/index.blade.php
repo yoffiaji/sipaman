@@ -23,7 +23,7 @@
         @if ($lastImport)
             <p class="mt-2 text-sm text-slate-500">Import terakhir: <span class="font-semibold">{{ $lastImport->nama_file }}</span> oleh {{ $lastImport->user?->nama ?? '-' }}</p>
         @endif
-        <form action="{{ route('admin.verifications.import') }}" method="POST" enctype="multipart/form-data" class="mt-5 flex flex-col gap-3 md:flex-row md:items-center">
+        <form action="{{ route('panel.verifications.import') }}" method="POST" enctype="multipart/form-data" class="mt-5 flex flex-col gap-3 md:flex-row md:items-center">
             @csrf
             <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="block w-full rounded-lg border border-slate-300 text-sm file:mr-4 file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:font-semibold">
             <button class="rounded-lg bg-blue-700 px-5 py-2 font-semibold text-white">Import Status</button>
@@ -35,11 +35,11 @@
             <div><h2 class="font-display text-xl font-bold">Daftar Verifikasi</h2><p class="mt-1 text-slate-600">Status ditampilkan read-only dan mengikuti hasil import Excel.</p></div>
             <div class="flex flex-wrap gap-2 text-sm font-semibold">
                 @foreach(['semua'=>'Semua','terverifikasi'=>'Terverifikasi','proses'=>'Proses','belum'=>'Belum'] as $key => $label)
-                    <a href="{{ route('admin.verifications.index', ['tab' => $key]) }}" class="rounded-lg border px-3 py-2 {{ $tab === $key ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-50' }}">{{ $label }}</a>
+                    <a href="{{ route('panel.verifications.index', ['tab' => $key]) }}" class="rounded-lg border px-3 py-2 {{ $tab === $key ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-50' }}">{{ $label }}</a>
                 @endforeach
             </div>
         </div>
-        <form method="GET" action="{{ route('admin.verifications.index') }}" class="mt-5 flex gap-3">
+        <form method="GET" action="{{ route('panel.verifications.index') }}" class="mt-5 flex gap-3">
             <input type="hidden" name="tab" value="{{ $tab }}">
             <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari produk / No SPPIRT..." class="w-full rounded-lg border-slate-300">
             <button class="rounded-lg border border-slate-300 px-4 py-2 font-semibold">Cari</button>
@@ -57,7 +57,7 @@
                             </td>
                             <td class="px-4 py-3">@if($product->is_verified)<x-badge-status status="terverifikasi">Terverifikasi</x-badge-status>@elseif($v)<x-badge-status status="proses">Proses</x-badge-status>@else<x-badge-status status="belum_terverifikasi">Belum</x-badge-status>@endif</td>
                             <td class="px-4 py-3">{{ $v?->verifikator?->nama ?? '-' }}</td>
-                            <td class="px-4 py-3 text-right"><a class="font-semibold text-blue-700" href="{{ route('admin.verifications.show', $product) }}">Detail</a></td>
+                            <td class="px-4 py-3 text-right"><a class="font-semibold text-blue-700" href="{{ route('panel.verifications.show', $product) }}">Detail</a></td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="px-4 py-10 text-center text-slate-500">Tidak ada data.</td></tr>

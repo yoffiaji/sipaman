@@ -48,7 +48,7 @@
                     <h3 class="font-display text-lg font-bold">Gambar Produk</h3>
                     <p class="mt-1 text-sm text-slate-600">Gambar produk dikelola dari menu khusus Gambar Produk dan hanya untuk produk terverifikasi.</p>
                 </div>
-                <a href="{{ route('admin.product-images.index') }}" class="inline-flex w-fit items-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white">
+                <a href="{{ route('panel.product-images.index') }}" class="inline-flex w-fit items-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white">
                     <span class="material-symbols-outlined text-[18px]">image</span>
                     Buka Gambar Produk
                 </a>

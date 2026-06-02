@@ -57,7 +57,7 @@
                             </td>
                             <td class="px-4 py-3 text-slate-700">{{ ucfirst($user->status_akun) }}</td>
                             <td class="px-4 py-3 text-right">
-                                <a class="font-semibold text-blue-700" href="{{ route('admin.pelaku-usaha.edit', $user) }}">Atur</a>
+                                <a class="font-semibold text-blue-700" href="{{ route('panel.pelaku-usaha.edit', $user) }}">Atur</a>
                             </td>
                         </tr>
                     @empty

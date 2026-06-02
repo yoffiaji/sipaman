@@ -11,7 +11,7 @@
     $accountIdentifier = null;
 
     if (auth()->check()) {
-        $dashboardRoute = auth()->user()->hasRole('user') ? 'user.dashboard' : 'admin.dashboard';
+        $dashboardRoute = auth()->user()->hasRole('user') ? 'user.dashboard' : 'panel.dashboard';
         $accountIdentifier = auth()->user()->hasRole('user')
             ? 'NIB ' . (auth()->user()->nib ?? '-')
             : (auth()->user()->email ?? '-');
@@ -59,7 +59,7 @@
                             aria-label="Menu akun"
                             aria-expanded="false"
                             data-account-toggle
-                            class="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant text-primary transition-colors hover:bg-primary hover:text-surface {{ request()->routeIs('user.*') || request()->routeIs('admin.*') ? 'bg-primary-soft' : '' }}"
+                            class="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant text-primary transition-colors hover:bg-primary hover:text-surface {{ request()->routeIs('user.*') || request()->routeIs('panel.*') ? 'bg-primary-soft' : '' }}"
                         >
                             <span class="material-symbols-outlined text-[24px]">person</span>
                         </button>
@@ -134,7 +134,7 @@
                     </div>
                     <a
                         href="{{ route($dashboardRoute) }}"
-                        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-600 {{ request()->routeIs('user.dashboard') || request()->routeIs('admin.*') ? 'bg-primary text-surface' : 'text-on-surface-variant hover:bg-surface-container hover:text-primary' }}"
+                        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-600 {{ request()->routeIs('user.dashboard') || request()->routeIs('panel.*') ? 'bg-primary text-surface' : 'text-on-surface-variant hover:bg-surface-container hover:text-primary' }}"
                     >
                         <span class="material-symbols-outlined text-[20px]">dashboard</span>
                         Dashboard

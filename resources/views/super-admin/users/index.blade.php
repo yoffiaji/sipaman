@@ -1,6 +1,6 @@
 @extends('layouts.admin')
-@section('title', 'Kelola Akun')
-@section('page-title', 'Kelola Akun')
+@section('title', 'Kelola Admin')
+@section('page-title', 'Kelola Admin')
 @section('content')
 <div class="space-y-5">
     @if (session('success')) <x-alert type="success">{{ session('success') }}</x-alert> @endif
@@ -9,20 +9,14 @@
     <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-start">
             <div>
-                <h2 class="font-display text-xl font-bold">Manajemen Akun</h2>
-                <p class="mt-1 text-slate-600">Pelaku usaha login memakai NIB. Super admin hanya mengatur password/status dan dapat membuat/menghapus admin.</p>
+                <h2 class="font-display text-xl font-bold">Manajemen Akun Admin</h2>
+                <p class="mt-1 text-slate-600">Super admin dapat membuat, mengatur password/status, dan menghapus akun admin.</p>
             </div>
             <a href="{{ route('super-admin.users.create') }}" class="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white">Tambah Admin</a>
         </div>
 
-        <form method="GET" class="mt-5 grid gap-3 md:grid-cols-[1fr_180px_auto]">
-            <input name="search" value="{{ request('search') }}" placeholder="Cari nama, email admin, atau NIB" class="rounded-lg border-slate-300">
-            <select name="role" class="rounded-lg border-slate-300">
-                <option value="">Semua Role</option>
-                @foreach(['user','admin'] as $role)
-                    <option value="{{ $role }}" @selected(request('role') === $role)>{{ $role }}</option>
-                @endforeach
-            </select>
+        <form method="GET" class="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+            <input name="search" value="{{ request('search') }}" placeholder="Cari nama atau email admin" class="rounded-lg border-slate-300">
             <button class="rounded-lg border px-4 py-2 font-semibold">Filter</button>
         </form>
 
@@ -43,16 +37,12 @@
                         <tr class="border-t">
                             <td class="px-4 py-3 font-semibold">{{ $user->nama }}</td>
                             <td class="px-4 py-3">
-                                @if ($role === 'user')
-                                    <span class="font-semibold">NIB:</span> {{ $user->nib ?: 'Belum ada NIB' }}
-                                @else
-                                    <span class="font-semibold">Email:</span> {{ $user->email ?: 'Belum ada email' }}
-                                @endif
+                                <span class="font-semibold">Email:</span> {{ $user->email ?: 'Belum ada email' }}
                             </td>
                             <td class="px-4 py-3">{{ str_replace('_', ' ', $role ?? '-') }}</td>
                             <td class="px-4 py-3">{{ $user->status_akun }}</td>
                             <td class="px-4 py-3 text-right">
-                                @if ($user->id !== auth()->id() && $role !== 'super_admin')
+                                @if ($user->id !== auth()->id() && $role === 'admin')
                                     <a class="font-semibold text-blue-700" href="{{ route('super-admin.users.edit', $user) }}">Atur</a>
                                 @else
                                     <span class="text-slate-400">Dikunci</span>
@@ -60,7 +50,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Belum ada akun.</td></tr>
+                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Belum ada akun admin.</td></tr>
                     @endforelse
                 </tbody>
             </table>

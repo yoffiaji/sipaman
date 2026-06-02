@@ -36,6 +36,6 @@ class ProductImageController extends Controller
         $this->productImageService->delete($gambarProduk);
         $this->logAudit('delete', 'gambar_produks', $before['id'], $before, null);
 
-        return redirect()->route('admin.products.show', $produkId)->with('success', 'Gambar berhasil dihapus.');
+        return redirect()->route('panel.products.show', $produkId)->with('success', 'Gambar berhasil dihapus.');
     }
 }

@@ -9,9 +9,9 @@
 
     <title>
         @hasSection('title')
-            @yield('title') | Admin {{ $siteName }}
+            @yield('title') | Panel Pengelola {{ $siteName }}
         @else
-            Admin {{ $siteName }}
+            Panel Pengelola {{ $siteName }}
         @endif
     </title>
 

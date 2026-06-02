@@ -47,7 +47,7 @@ class JenisBarangController extends Controller
         $jenisBarang = $this->jenisBarangService->create($request->validated());
         $this->logAudit('create', 'jenis_barangs', $jenisBarang->id, null, $jenisBarang->toArray());
 
-        return redirect()->route('admin.jenis-barang.index')->with('success', 'Jenis barang berhasil ditambahkan.');
+        return redirect()->route('panel.jenis-barang.index')->with('success', 'Jenis barang berhasil ditambahkan.');
     }
 
     public function edit(JenisBarang $jenisBarang): View
@@ -63,7 +63,7 @@ class JenisBarangController extends Controller
         $updated = $this->jenisBarangService->update($jenisBarang, $request->validated());
         $this->logAudit('update', 'jenis_barangs', $jenisBarang->id, $before, $updated->toArray());
 
-        return redirect()->route('admin.jenis-barang.index')->with('success', 'Jenis barang berhasil diperbarui.');
+        return redirect()->route('panel.jenis-barang.index')->with('success', 'Jenis barang berhasil diperbarui.');
     }
 
     public function review(Request $request): View
@@ -90,7 +90,7 @@ class JenisBarangController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.jenis-barang.index')
+            ->route('panel.jenis-barang.index')
             ->with('success', "Sinkron ulang selesai. {$result['checked']} produk diperiksa, {$result['updated']} produk diperbarui, {$result['fallback']} produk masih perlu review.");
     }
 
@@ -105,6 +105,6 @@ class JenisBarangController extends Controller
         $this->jenisBarangService->forgetCatalogCache();
         $this->logAudit('delete', 'jenis_barangs', $before['id'], $before, null);
 
-        return redirect()->route('admin.jenis-barang.index')->with('success', 'Jenis barang berhasil dihapus.');
+        return redirect()->route('panel.jenis-barang.index')->with('success', 'Jenis barang berhasil dihapus.');
     }
 }

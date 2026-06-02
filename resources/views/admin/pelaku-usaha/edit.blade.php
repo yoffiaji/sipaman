@@ -17,7 +17,7 @@
         Nama dan NIB dikunci agar tetap konsisten dengan data PIRT. Admin hanya mengatur status akun dan password.
     </x-alert>
 
-    <form action="{{ route('admin.pelaku-usaha.update', $user) }}" method="POST" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <form action="{{ route('panel.pelaku-usaha.update', $user) }}" method="POST" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         @csrf
         @method('PATCH')
 
@@ -57,7 +57,7 @@
 
         <div class="mt-6 flex gap-3">
             <button class="rounded-lg bg-slate-900 px-5 py-2.5 font-semibold text-white">Simpan</button>
-            <a href="{{ route('admin.pelaku-usaha.index') }}" class="rounded-lg border border-slate-300 px-5 py-2.5 font-semibold">Batal</a>
+            <a href="{{ route('panel.pelaku-usaha.index') }}" class="rounded-lg border border-slate-300 px-5 py-2.5 font-semibold">Batal</a>
         </div>
     </form>
 </div>

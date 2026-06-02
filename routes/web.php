@@ -60,8 +60,8 @@ Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(f
 });
 
 Route::middleware(['auth', 'role:admin,super_admin'])
-    ->prefix('admin')
-    ->name('admin.')
+    ->prefix('panel')
+    ->name('panel.')
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard.alias');

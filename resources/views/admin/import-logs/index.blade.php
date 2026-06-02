@@ -13,7 +13,7 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('admin.import-logs.index') }}" class="mt-5 grid gap-3 md:grid-cols-[1fr_260px_auto]">
+            <form method="GET" action="{{ route('panel.import-logs.index') }}" class="mt-5 grid gap-3 md:grid-cols-[1fr_260px_auto]">
                 <input
                     type="search"
                     name="search"

@@ -86,6 +86,6 @@
         </div>
     </div>
 
-    <a href="{{ route('admin.verifications.index') }}" class="inline-flex rounded-lg border border-slate-300 px-5 py-2.5 font-semibold text-slate-700">Kembali</a>
+    <a href="{{ route('panel.verifications.index') }}" class="inline-flex rounded-lg border border-slate-300 px-5 py-2.5 font-semibold text-slate-700">Kembali</a>
 </div>
 @endsection

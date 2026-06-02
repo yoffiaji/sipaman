@@ -78,7 +78,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <form action="{{ route('admin.product-images.update', $product) }}" method="POST" enctype="multipart/form-data" class="flex min-w-[260px] flex-col gap-2">
+                                <form action="{{ route('panel.product-images.update', $product) }}" method="POST" enctype="multipart/form-data" class="flex min-w-[260px] flex-col gap-2">
                                     @csrf
                                     <input type="file" name="gambar" accept="image/jpeg,image/png,image/jpg,image/webp" required class="block w-full rounded-lg border border-slate-300 text-xs file:mr-3 file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:font-semibold">
                                     <button class="rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800">Ganti Gambar</button>

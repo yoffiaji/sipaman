@@ -45,7 +45,7 @@
                     <li><a class="transition-colors hover:text-accent" href="{{ route('home') }}">{{ $homeLabel }}</a></li>
                     <li><a class="transition-colors hover:text-accent" href="{{ route('products.index') }}">{{ $productsLabel }}</a></li>
                     <li><a class="transition-colors hover:text-accent" href="{{ route('umkm.index') }}">{{ $umkmLabel }}</a></li>
-                    <li><a class="transition-colors hover:text-accent" href="{{ auth()->check() ? route(auth()->user()->hasRole('user') ? 'user.dashboard' : 'admin.dashboard') : route('login') }}">{{ auth()->check() ? 'Dashboard' : 'Login' }}</a></li>
+                    <li><a class="transition-colors hover:text-accent" href="{{ auth()->check() ? route(auth()->user()->hasRole('user') ? 'user.dashboard' : 'panel.dashboard') : route('login') }}">{{ auth()->check() ? 'Dashboard' : 'Login' }}</a></li>
                 </ul>
             </div>
 
@@ -53,7 +53,7 @@
                 <h3 class="eyebrow mb-4 text-[11px] font-600 text-accent">Layanan</h3>
                 <ul class="space-y-2.5 text-surface/75">
                     <li><a class="transition-colors hover:text-accent" href="{{ route('products.index') }}">Katalog PIRT</a></li>
-                    <li><a class="transition-colors hover:text-accent" href="{{ auth()->check() ? route(auth()->user()->hasRole('user') ? 'user.dashboard' : 'admin.dashboard') : route('login') }}">Dashboard</a></li>
+                    <li><a class="transition-colors hover:text-accent" href="{{ auth()->check() ? route(auth()->user()->hasRole('user') ? 'user.dashboard' : 'panel.dashboard') : route('login') }}">Dashboard</a></li>
                 </ul>
             </div>
 

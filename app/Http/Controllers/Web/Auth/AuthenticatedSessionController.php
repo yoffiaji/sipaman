@@ -82,7 +82,7 @@ class AuthenticatedSessionController extends Controller
     private function redirectPath(User $user): string
     {
         return match ($user->role->nama_role ?? null) {
-            'admin', 'super_admin' => route('admin.dashboard'),
+            'admin', 'super_admin' => route('panel.dashboard'),
             'user' => route('user.dashboard'),
             default => route('home'),
         };

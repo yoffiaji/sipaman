@@ -14,7 +14,7 @@
                 <h2 class="font-display text-xl font-bold">Daftar Produk Perlu Review</h2>
                 <p class="mt-1 text-slate-600">Gunakan data Kategori Pangan dan Jenis Pangan mentah sebagai acuan membuat alias.</p>
             </div>
-            <a href="{{ route('admin.jenis-barang.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50">Kembali</a>
+            <a href="{{ route('panel.jenis-barang.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50">Kembali</a>
         </div>
 
         <form method="GET" class="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
@@ -43,7 +43,7 @@
                             <td class="px-4 py-3 text-slate-700">{{ $product->jenis_pangan ?: '-' }}</td>
                             <td class="px-4 py-3 text-slate-700">{{ $product->nama_pelaku_usaha }}</td>
                             <td class="px-4 py-3 text-right">
-                                <a class="font-semibold text-blue-700" href="{{ route('admin.products.show', $product) }}">Detail</a>
+                                <a class="font-semibold text-blue-700" href="{{ route('panel.products.show', $product) }}">Detail</a>
                             </td>
                         </tr>
                     @empty

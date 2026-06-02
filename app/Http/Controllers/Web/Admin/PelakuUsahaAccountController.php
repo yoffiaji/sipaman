@@ -68,7 +68,7 @@ class PelakuUsahaAccountController extends Controller
             'has_password' => ! $user->needsPasswordSetup(),
         ]);
 
-        return redirect()->route('admin.pelaku-usaha.index')->with('success', 'Akun pelaku usaha berhasil diperbarui.');
+        return redirect()->route('panel.pelaku-usaha.index')->with('success', 'Akun pelaku usaha berhasil diperbarui.');
     }
 
     private function ensurePelakuUsaha(User $user): void

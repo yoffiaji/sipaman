@@ -55,7 +55,7 @@
             </div>
             <div class="mt-4 space-y-2.5">
                 @forelse ($stats['produk_terbaru'] ?? [] as $produk)
-                    <a href="{{ route('admin.products.show', $produk) }}" class="group flex items-center gap-3 rounded-xl border border-outline-variant/60 p-3.5 transition-colors hover:border-primary/30 hover:bg-surface-container-low">
+                    <a href="{{ route('panel.products.show', $produk) }}" class="group flex items-center gap-3 rounded-xl border border-outline-variant/60 p-3.5 transition-colors hover:border-primary/30 hover:bg-surface-container-low">
                         <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
                             <span class="material-symbols-outlined text-[18px]">package_2</span>
                         </span>

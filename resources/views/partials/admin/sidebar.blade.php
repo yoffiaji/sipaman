@@ -3,30 +3,30 @@
 
     $groups = [
         'Utama' => [
-            ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard*'],
+            ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => 'panel.dashboard', 'active' => 'panel.dashboard*'],
         ],
         'Data PIRT' => [
-            ['label' => 'Produk', 'icon' => 'inventory_2', 'route' => 'admin.products.index', 'active' => 'admin.products.*'],
-            ['label' => 'Gambar Produk', 'icon' => 'image', 'route' => 'admin.product-images.index', 'active' => 'admin.product-images.*'],
-            ['label' => 'Jenis Barang', 'icon' => 'category', 'route' => 'admin.jenis-barang.index', 'active' => 'admin.jenis-barang.*'],
-            ['label' => 'Verifikasi', 'icon' => 'verified', 'route' => 'admin.verifications.index', 'active' => 'admin.verifications.*'],
+            ['label' => 'Produk', 'icon' => 'inventory_2', 'route' => 'panel.products.index', 'active' => 'panel.products.*'],
+            ['label' => 'Gambar Produk', 'icon' => 'image', 'route' => 'panel.product-images.index', 'active' => 'panel.product-images.*'],
+            ['label' => 'Jenis Barang', 'icon' => 'category', 'route' => 'panel.jenis-barang.index', 'active' => 'panel.jenis-barang.*'],
+            ['label' => 'Verifikasi', 'icon' => 'verified', 'route' => 'panel.verifications.index', 'active' => 'panel.verifications.*'],
         ],
         'Pengguna' => [
-            ['label' => 'Akun Pelaku Usaha', 'icon' => 'badge', 'route' => 'admin.pelaku-usaha.index', 'active' => 'admin.pelaku-usaha.*'],
+            ['label' => 'Kelola Pelaku Usaha', 'icon' => 'badge', 'route' => 'panel.pelaku-usaha.index', 'active' => 'panel.pelaku-usaha.*'],
         ],
         'Konten Website' => [
-            ['label' => 'Landing Page', 'icon' => 'web', 'route' => 'admin.landing-page.index', 'active' => 'admin.landing-page.*'],
+            ['label' => 'Landing Page', 'icon' => 'web', 'route' => 'panel.landing-page.index', 'active' => 'panel.landing-page.*'],
         ],
         'Monitoring' => [
-            ['label' => 'Log Aktivitas', 'icon' => 'history', 'route' => 'admin.logs.index', 'active' => 'admin.logs.*'],
-            ['label' => 'Riwayat Import', 'icon' => 'upload_file', 'route' => 'admin.import-logs.index', 'active' => 'admin.import-logs.*'],
+            ['label' => 'Log Aktivitas', 'icon' => 'history', 'route' => 'panel.logs.index', 'active' => 'panel.logs.*'],
+            ['label' => 'Riwayat Import', 'icon' => 'upload_file', 'route' => 'panel.import-logs.index', 'active' => 'panel.import-logs.*'],
         ],
     ];
 
     if ($role === 'super_admin') {
-        $groups['Super Admin'] = [
-            ['label' => 'Kelola User', 'icon' => 'group', 'route' => 'super-admin.users.index', 'active' => 'super-admin.users.*'],
-            ['label' => 'System Settings', 'icon' => 'settings', 'route' => 'super-admin.settings.index', 'active' => 'super-admin.settings.*'],
+        $groups['Administrasi Sistem'] = [
+            ['label' => 'Kelola Admin', 'icon' => 'group', 'route' => 'super-admin.users.index', 'active' => 'super-admin.users.*'],
+            ['label' => 'Pengaturan Sistem', 'icon' => 'settings', 'route' => 'super-admin.settings.index', 'active' => 'super-admin.settings.*'],
             ['label' => 'Audit Trail', 'icon' => 'manage_search', 'route' => 'super-admin.audit-trails.index', 'active' => 'super-admin.audit-trails.*'],
         ];
     }
@@ -35,7 +35,7 @@
 <aside class="hidden border-r border-outline-variant/70 bg-primary text-surface lg:block">
     <div class="sticky top-0 flex h-screen flex-col">
         <div class="border-b border-surface/10 px-6 py-6">
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
+            <a href="{{ route('panel.dashboard') }}" class="flex items-center gap-3">
                 <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/20 text-accent">
                     <span class="material-symbols-outlined text-[20px]">verified_user</span>
                 </span>
@@ -50,7 +50,7 @@
             id="admin-sidebar-scroll"
             class="scrollbar-none flex-1 space-y-5 overflow-y-auto px-4 py-5"
             style="visibility: hidden;"
-            aria-label="Navigasi admin"
+            aria-label="Navigasi panel"
         >
             @foreach($groups as $groupLabel => $items)
                 <div>
@@ -93,7 +93,7 @@
 
                 <div class="min-w-0">
                     <p class="truncate text-sm font-600 text-surface">
-                        {{ auth()->user()?->nama ?? 'Admin' }}
+                        {{ auth()->user()?->nama ?? 'Pengelola' }}
                     </p>
                     <p class="eyebrow truncate text-[9px] font-600 text-surface/55">
                         {{ str_replace('_', ' ', $role ?? 'admin') }}
