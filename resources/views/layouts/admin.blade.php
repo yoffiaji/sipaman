@@ -42,5 +42,13 @@
             </main>
         </div>
     </div>
+
+    <div id="panel-loading-overlay" class="panel-loading-overlay" aria-live="polite" aria-hidden="true">
+        <div class="panel-loading-box">
+            <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-primary"></div>
+            <p id="panel-loading-message" class="mt-4 font-semibold text-slate-900">Memproses data...</p>
+            <p class="mt-1 text-sm text-slate-500">Mohon tunggu sampai proses selesai.</p>
+        </div>
+    </div>
 </body>
 </html>

@@ -11,11 +11,11 @@
 
     <div class="grid gap-4 md:grid-cols-4">
         @foreach ([['Semua', $stats['total']], ['Terverifikasi', $stats['terverifikasi']], ['Proses', $stats['proses']], ['Belum', $stats['belum']]] as [$label, $value])
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm font-semibold text-slate-500">{{ $label }}</p><p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($value) }}</p></div>
+            <div class="panel-card"><p class="text-sm font-semibold text-slate-500">{{ $label }}</p><p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($value) }}</p></div>
         @endforeach
     </div>
 
-    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="panel-form-card">
         <h2 class="font-display text-xl font-bold">Import Status Pemenuhan Komitmen</h2>
         <p class="mt-1 text-slate-600">Upload Excel status komitmen untuk sinkron otomatis ke verifikasi produk.</p>
         <p class="mt-1 text-sm font-semibold text-amber-700">Status verifikasi hanya diperbarui melalui import Excel Status Pemenuhan Komitmen agar sesuai dengan data sumber resmi.</p>
@@ -23,14 +23,14 @@
         @if ($lastImport)
             <p class="mt-2 text-sm text-slate-500">Import terakhir: <span class="font-semibold">{{ $lastImport->nama_file }}</span> oleh {{ $lastImport->user?->nama ?? '-' }}</p>
         @endif
-        <form action="{{ route('panel.verifications.import') }}" method="POST" enctype="multipart/form-data" class="mt-5 flex flex-col gap-3 md:flex-row md:items-center">
+        <form action="{{ route('panel.verifications.import') }}" method="POST" enctype="multipart/form-data" class="mt-5 flex flex-col gap-3 md:flex-row md:items-center" data-loading-form data-loading-message="Memproses import Status Pemenuhan Komitmen...">
             @csrf
             <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="block w-full rounded-lg border border-slate-300 text-sm file:mr-4 file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:font-semibold">
             <button class="rounded-lg bg-blue-700 px-5 py-2 font-semibold text-white">Import Status</button>
         </form>
     </div>
 
-    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="panel-table-card">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div><h2 class="font-display text-xl font-bold">Daftar Verifikasi</h2><p class="mt-1 text-slate-600">Status ditampilkan read-only dan mengikuti hasil import Excel.</p></div>
             <div class="flex flex-wrap gap-2 text-sm font-semibold">
@@ -44,23 +44,23 @@
             <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari produk / No SPPIRT..." class="w-full rounded-lg border-slate-300">
             <button class="rounded-lg border border-slate-300 px-4 py-2 font-semibold">Cari</button>
         </form>
-        <div class="mt-6 overflow-hidden rounded-lg border border-slate-200">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 text-slate-600"><tr><th class="px-4 py-3">Produk</th><th class="px-4 py-3">Syarat</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Verifikator</th><th class="px-4 py-3"></th></tr></thead>
+        <div class="panel-table-wrapper">
+            <table class="panel-table">
+                <thead><tr><th>Produk</th><th>Syarat</th><th>Status</th><th>Verifikator</th><th></th></tr></thead>
                 <tbody>
                     @forelse($products as $product)
                         @php($v = $product->verifikasi)
-                        <tr class="border-t align-top">
-                            <td class="px-4 py-3"><div class="font-semibold">{{ $product->nama_branding }}</div><div class="text-xs text-slate-500">{{ $product->no_sppirt }}</div></td>
-                            <td class="px-4 py-3 text-xs text-slate-600">
+                        <tr>
+                            <td><div class="font-semibold">{{ $product->nama_branding }}</div><div class="text-xs text-slate-500">{{ $product->no_sppirt }}</div></td>
+                            <td class="text-xs text-slate-600">
                                 Produk: {{ $v?->verifikasi_produk ? '✓' : '×' }} · Label: {{ $v?->verifikasi_label ? '✓' : '×' }} · PKP: {{ $v?->pkp ? '✓' : '×' }} · CPPOB: {{ $v?->cppob_pemeriksaan_sarana ? '✓' : '×' }}
                             </td>
-                            <td class="px-4 py-3">@if($product->is_verified)<x-badge-status status="terverifikasi">Terverifikasi</x-badge-status>@elseif($v)<x-badge-status status="proses">Proses</x-badge-status>@else<x-badge-status status="belum_terverifikasi">Belum</x-badge-status>@endif</td>
-                            <td class="px-4 py-3">{{ $v?->verifikator?->nama ?? '-' }}</td>
-                            <td class="px-4 py-3 text-right"><a class="font-semibold text-blue-700" href="{{ route('panel.verifications.show', $product) }}">Detail</a></td>
+                            <td>@if($product->is_verified)<x-badge-status status="terverifikasi">Terverifikasi</x-badge-status>@elseif($v)<x-badge-status status="proses">Proses</x-badge-status>@else<x-badge-status status="belum_terverifikasi">Belum</x-badge-status>@endif</td>
+                            <td>{{ $v?->verifikator?->nama ?? '-' }}</td>
+                            <td class="text-right"><a class="font-semibold text-blue-700" href="{{ route('panel.verifications.show', $product) }}">Detail</a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-4 py-10 text-center text-slate-500">Tidak ada data.</td></tr>
+                        <tr><td colspan="5" class="py-10 text-center text-slate-500">Tidak ada data.</td></tr>
                     @endforelse
                 </tbody>
             </table>

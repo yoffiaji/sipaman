@@ -101,9 +101,9 @@
 
                 <div class="space-y-5 p-6">
                     @if ($produk->gambarUtama)
-                        <img src="{{ $produk->gambarUtama->gambar_url }}" alt="{{ $produk->nama_branding }}" class="aspect-[4/3] w-full rounded-2xl border border-outline-variant object-cover">
+                        <img src="{{ $produk->gambarUtama->gambar_url }}" alt="{{ $produk->nama_branding }}" class="aspect-square w-full rounded-2xl border border-outline-variant object-cover">
                     @else
-                        <div class="flex aspect-[4/3] w-full items-center justify-center rounded-2xl border border-dashed border-outline-variant bg-surface-container-low text-center text-sm text-on-surface-variant">
+                        <div class="flex aspect-square w-full items-center justify-center rounded-2xl border border-dashed border-outline-variant bg-surface-container-low text-center text-sm text-on-surface-variant">
                             Belum ada gambar produk.
                         </div>
                     @endif
@@ -119,7 +119,7 @@
                                     Ganti Gambar
                                 </button>
                             </div>
-                            <p class="text-xs text-on-surface-variant">Format JPG, PNG, atau WebP. Maksimal 2 MB. Upload baru akan mengganti gambar lama.</p>
+                            <p class="text-xs leading-5 text-on-surface-variant">Rekomendasi foto: gunakan rasio 1:1 (persegi), minimal 800×800 px, ideal 1200×1200 px. Format JPG, JPEG, PNG, atau WebP. Maksimal ukuran file 2 MB. Upload baru akan mengganti gambar lama.</p>
                         </form>
                     @else
                         <x-alert type="warning">Belum terverifikasi — gambar belum dapat diubah.</x-alert>

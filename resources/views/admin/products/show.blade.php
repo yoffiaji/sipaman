@@ -56,8 +56,8 @@
 
             <div class="mt-5">
                 @if ($produk->gambarUtama)
-                    <div class="max-w-sm overflow-hidden rounded-lg border border-slate-200">
-                        <img src="{{ $produk->gambarUtama->gambar_url }}" alt="{{ $produk->nama_branding }}" class="h-56 w-full object-cover">
+                    <div class="max-w-xs overflow-hidden rounded-lg border border-slate-200">
+                        <img src="{{ $produk->gambarUtama->gambar_url }}" alt="{{ $produk->nama_branding }}" class="aspect-square w-full object-cover">
                         <div class="p-3 text-sm font-semibold text-slate-700">Gambar aktif</div>
                     </div>
                 @else

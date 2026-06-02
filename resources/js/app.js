@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initButtonUrlFields();
     initConfirmableForms();
     initDialogCloseButtons();
+    initPanelLoadingForms();
     initPublicNavigation();
     initAdminSidebarScroll();
     clearLegacyAdminScrollCache();
@@ -60,6 +61,37 @@ function initConfirmableForms() {
             if (message && !window.confirm(message)) {
                 event.preventDefault();
             }
+        });
+    });
+}
+
+function initPanelLoadingForms() {
+    const overlay = document.getElementById('panel-loading-overlay');
+    const message = document.getElementById('panel-loading-message');
+
+    if (!overlay) {
+        return;
+    }
+
+    document.querySelectorAll('form[data-loading-form]').forEach((form) => {
+        form.addEventListener('submit', () => {
+            if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+                return;
+            }
+
+            const loadingMessage = form.getAttribute('data-loading-message');
+
+            if (message && loadingMessage) {
+                message.textContent = loadingMessage;
+            }
+
+            overlay.classList.add('is-active');
+            overlay.setAttribute('aria-hidden', 'false');
+
+            form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((button) => {
+                button.disabled = true;
+                button.classList.add('cursor-wait', 'opacity-75');
+            });
         });
     });
 }

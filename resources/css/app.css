@@ -140,6 +140,61 @@ h6,
     display: none;
 }
 
+@layer components {
+    .panel-card {
+        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm;
+    }
+
+    .panel-form-card,
+    .panel-table-card {
+        @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm;
+    }
+
+    .panel-table-wrapper {
+        @apply mt-6 overflow-hidden rounded-lg border border-slate-200;
+    }
+
+    .panel-table {
+        @apply w-full text-left text-sm;
+    }
+
+    .panel-table thead {
+        @apply bg-slate-50 text-slate-600;
+    }
+
+    .panel-table th {
+        @apply px-4 py-3 font-bold;
+    }
+
+    .panel-table td {
+        @apply px-4 py-3;
+    }
+
+    .panel-table tbody tr {
+        @apply border-t border-slate-200 align-top transition-colors;
+    }
+
+    .panel-table tbody tr:hover {
+        @apply bg-slate-50/70;
+    }
+
+    .panel-photo-recommendation {
+        @apply text-xs leading-5 text-slate-500;
+    }
+
+    .panel-loading-overlay {
+        @apply fixed inset-0 z-[80] hidden items-center justify-center bg-slate-900/45 px-4 backdrop-blur-sm;
+    }
+
+    .panel-loading-overlay.is-active {
+        @apply flex;
+    }
+
+    .panel-loading-box {
+        @apply w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 text-center shadow-lift;
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Admin legacy utility remap

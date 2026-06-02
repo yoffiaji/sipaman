@@ -38,22 +38,22 @@
 
         {{-- Stats --}}
         <div class="grid gap-4 md:grid-cols-3">
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="panel-card">
                 <p class="text-sm font-semibold text-slate-500">Total Produk</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($stats['total'] ?? 0) }}</p>
             </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="panel-card">
                 <p class="text-sm font-semibold text-slate-500">Terverifikasi</p>
                 <p class="mt-2 text-3xl font-bold text-emerald-700">{{ number_format($stats['verified'] ?? 0) }}</p>
             </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="panel-card">
                 <p class="text-sm font-semibold text-slate-500">Belum Terverifikasi</p>
                 <p class="mt-2 text-3xl font-bold text-amber-700">{{ number_format($stats['unverified'] ?? 0) }}</p>
             </div>
         </div>
 
         {{-- Import Rekap PIRT --}}
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="panel-form-card">
             <div class="flex items-start gap-3">
                 <span class="material-symbols-outlined rounded-lg bg-blue-50 p-2 text-blue-700">upload_file</span>
                 <div>
@@ -78,7 +78,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('panel.products.import.rekap-pirt') }}" method="POST" enctype="multipart/form-data" class="mt-5">
+            <form action="{{ route('panel.products.import.rekap-pirt') }}" method="POST" enctype="multipart/form-data" class="mt-5" data-loading-form data-loading-message="Memproses import Rekap PIRT...">
                 @csrf
                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
                     <input
@@ -96,7 +96,7 @@
         </div>
 
         {{-- Tabel Produk --}}
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="panel-table-card">
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                     <h2 class="font-display text-xl font-bold">Data Produk PIRT</h2>
@@ -134,47 +134,47 @@
                 </button>
             </form>
 
-            <div class="mt-6 overflow-hidden rounded-lg border border-slate-200">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 text-slate-600">
+            <div class="panel-table-wrapper">
+                <table class="panel-table">
+                    <thead>
                         <tr>
-                            <th class="px-4 py-3">Produk</th>
-                            <th class="px-4 py-3">No SPPIRT</th>
-                            <th class="px-4 py-3">Wilayah</th>
-                            <th class="px-4 py-3">Pelaku Usaha</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3"></th>
+                            <th>Produk</th>
+                            <th>No SPPIRT</th>
+                            <th>Wilayah</th>
+                            <th>Pelaku Usaha</th>
+                            <th>Status</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($products as $product)
-                            <tr class="border-t border-slate-200 align-top">
-                                <td class="px-4 py-3">
+                            <tr>
+                                <td>
                                     <div class="font-semibold text-slate-900">{{ $product->nama_branding }}</div>
                                     <div class="mt-1 text-xs text-slate-500">
                                         {{ $product->jenisBarang?->nama_jenis ?? 'Belum diklasifikasi' }}
                                         <span class="text-slate-400">/ {{ $product->jenis_pangan ?? $product->kategori_pangan ?? '-' }}</span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-slate-700">{{ $product->no_sppirt }}</td>
-                                <td class="px-4 py-3 text-slate-700">
+                                <td class="text-slate-700">{{ $product->no_sppirt }}</td>
+                                <td class="text-slate-700">
                                     {{ $product->kecamatan->nama_kecamatan ?? $product->wilayah ?? '-' }}
                                 </td>
-                                <td class="px-4 py-3 text-slate-700">{{ $product->nama_pelaku_usaha }}</td>
-                                <td class="px-4 py-3">
+                                <td class="text-slate-700">{{ $product->nama_pelaku_usaha }}</td>
+                                <td>
                                     @if ($product->is_verified)
                                         <x-badge-status status="terverifikasi">Terverifikasi</x-badge-status>
                                     @else
                                         <x-badge-status status="belum_terverifikasi">Belum</x-badge-status>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-right">
+                                <td class="text-right">
                                     <a class="font-semibold text-blue-700 hover:text-blue-900" href="{{ route('panel.products.show', $product) }}">Detail</a>
                                 </td>
                             </tr>
                         @empty
-                            <tr class="border-t border-slate-200">
-                                <td colspan="6" class="px-4 py-10 text-center text-slate-500">
+                            <tr>
+                                <td colspan="6" class="py-10 text-center text-slate-500">
                                     Belum ada data produk. Import file Rekap Data PIRT terlebih dahulu.
                                 </td>
                             </tr>
