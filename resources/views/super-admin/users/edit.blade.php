@@ -19,7 +19,12 @@
 </form>
 
 @if (($user->role?->nama_role ?? null) === 'admin')
-    <form action="{{ route('super-admin.users.destroy', $user) }}" method="POST" class="mt-4" onsubmit="return confirm('Hapus admin ini?')">
+    <form
+        action="{{ route('super-admin.users.destroy', $user) }}"
+        method="POST"
+        class="mt-4"
+        data-confirm="Hapus admin ini?"
+    >
         @csrf
         @method('DELETE')
         <button class="rounded-lg border border-red-200 px-4 py-2 font-semibold text-red-700 hover:bg-red-50">Hapus Admin</button>

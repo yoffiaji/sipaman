@@ -58,8 +58,8 @@
                             type="button"
                             aria-label="Menu akun"
                             aria-expanded="false"
+                            data-account-toggle
                             class="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant text-primary transition-colors hover:bg-primary hover:text-surface {{ request()->routeIs('user.*') || request()->routeIs('admin.*') ? 'bg-primary-soft' : '' }}"
-                            onclick="this.closest('[data-account-menu]').classList.toggle('is-open'); this.setAttribute('aria-expanded', this.closest('[data-account-menu]').classList.contains('is-open'))"
                         >
                             <span class="material-symbols-outlined text-[24px]">person</span>
                         </button>
@@ -104,7 +104,7 @@
                 class="rounded-xl p-2 text-primary transition-colors hover:bg-surface-container md:hidden"
                 aria-controls="mobile-navigation"
                 aria-expanded="false"
-                onclick="document.getElementById('mobile-navigation').classList.toggle('hidden')"
+                data-mobile-navigation-toggle
             >
                 <span class="material-symbols-outlined">menu</span>
             </button>
@@ -159,28 +159,3 @@
         </nav>
     </div>
 </header>
-
-<style>
-    [data-account-menu] .account-dropdown {
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-6px);
-        transition: opacity .15s ease, transform .15s ease, visibility .15s;
-    }
-    [data-account-menu].is-open .account-dropdown {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-</style>
-<script>
-    document.addEventListener('click', function (e) {
-        document.querySelectorAll('[data-account-menu].is-open').forEach(function (menu) {
-            if (!menu.contains(e.target)) {
-                menu.classList.remove('is-open');
-                var btn = menu.querySelector('button[aria-label="Menu akun"]');
-                if (btn) btn.setAttribute('aria-expanded', 'false');
-            }
-        });
-    });
-</script>

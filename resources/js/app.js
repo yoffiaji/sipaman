@@ -6,6 +6,10 @@ if ('scrollRestoration' in history) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initAutoResizeTextareas();
+    initButtonUrlFields();
+    initConfirmableForms();
+    initDialogCloseButtons();
+    initPublicNavigation();
     initAdminSidebarScroll();
     clearLegacyAdminScrollCache();
 });
@@ -23,6 +27,117 @@ function initAutoResizeTextareas() {
         resize();
 
         textarea.addEventListener('input', resize);
+    });
+}
+
+function initPublicNavigation() {
+    initAccountMenus();
+    initMobileNavigation();
+}
+
+function initButtonUrlFields() {
+    document.querySelectorAll('[data-button-url-select]').forEach((select) => {
+        const wrapper = select.parentElement?.querySelector('[data-custom-url-field]');
+
+        if (!wrapper) {
+            return;
+        }
+
+        const toggleCustomUrl = () => {
+            wrapper.classList.toggle('hidden', select.value !== 'custom');
+        };
+
+        toggleCustomUrl();
+        select.addEventListener('change', toggleCustomUrl);
+    });
+}
+
+function initConfirmableForms() {
+    document.querySelectorAll('form[data-confirm]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            const message = form.getAttribute('data-confirm');
+
+            if (message && !window.confirm(message)) {
+                event.preventDefault();
+            }
+        });
+    });
+}
+
+function initDialogCloseButtons() {
+    document.querySelectorAll('[data-close-dialog]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const dialogId = button.getAttribute('data-close-dialog');
+            const dialog = dialogId ? document.getElementById(dialogId) : null;
+
+            if (dialog instanceof HTMLDialogElement) {
+                dialog.close();
+            }
+        });
+    });
+}
+
+function initAccountMenus() {
+    const menus = document.querySelectorAll('[data-account-menu]');
+
+    if (!menus.length) {
+        return;
+    }
+
+    const closeMenu = (menu) => {
+        menu.classList.remove('is-open');
+        menu.querySelector('[data-account-toggle]')?.setAttribute('aria-expanded', 'false');
+    };
+
+    menus.forEach((menu) => {
+        const toggle = menu.querySelector('[data-account-toggle]');
+
+        if (!toggle) {
+            return;
+        }
+
+        toggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+
+            const isOpen = menu.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        menus.forEach((menu) => {
+            if (!menu.contains(event.target)) {
+                closeMenu(menu);
+            }
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') {
+            return;
+        }
+
+        menus.forEach(closeMenu);
+    });
+}
+
+function initMobileNavigation() {
+    document.querySelectorAll('[data-mobile-navigation-toggle]').forEach((toggle) => {
+        const targetId = toggle.getAttribute('aria-controls');
+        const target = targetId ? document.getElementById(targetId) : null;
+
+        if (!target) {
+            return;
+        }
+
+        const setOpen = (isOpen) => {
+            target.classList.toggle('hidden', !isOpen);
+            toggle.setAttribute('aria-expanded', String(isOpen));
+        };
+
+        toggle.addEventListener('click', () => {
+            setOpen(target.classList.contains('hidden'));
+        });
     });
 }
 

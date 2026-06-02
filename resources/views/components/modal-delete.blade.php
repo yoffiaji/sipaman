@@ -21,7 +21,11 @@
         </div>
 
         <div class="flex justify-end gap-3">
-            <button type="button" class="rounded-full border border-outline-variant px-4 py-2 font-600 text-primary transition-colors hover:bg-surface-container" onclick="document.getElementById('{{ $id }}').close()">
+            <button
+                type="button"
+                class="rounded-full border border-outline-variant px-4 py-2 font-600 text-primary transition-colors hover:bg-surface-container"
+                data-close-dialog="{{ $id }}"
+            >
                 Batal
             </button>
             <button type="submit" class="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-4 py-2 font-600 text-white transition-colors hover:bg-red-700">

@@ -187,15 +187,4 @@
         </form>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('[data-button-url-select]').forEach((select) => {
-                const wrapper = select.parentElement?.querySelector('[data-custom-url-field]');
-                const toggleCustomUrl = () => wrapper?.classList.toggle('hidden', select.value !== 'custom');
-
-                toggleCustomUrl();
-                select.addEventListener('change', toggleCustomUrl);
-            });
-        });
-    </script>
 @endsection

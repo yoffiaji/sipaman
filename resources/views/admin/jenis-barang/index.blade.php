@@ -17,7 +17,11 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('admin.jenis-barang.review') }}" class="rounded-lg border border-amber-200 px-4 py-2 font-semibold text-amber-700 hover:bg-amber-50">Lihat Perlu Review</a>
-                <form action="{{ route('admin.jenis-barang.sync') }}" method="POST" onsubmit="return confirm('Sinkronkan ulang jenis produk berdasarkan alias terbaru?')">
+                <form
+                    action="{{ route('admin.jenis-barang.sync') }}"
+                    method="POST"
+                    data-confirm="Sinkronkan ulang jenis produk berdasarkan alias terbaru?"
+                >
                     @csrf
                     <button class="rounded-lg border border-blue-200 px-4 py-2 font-semibold text-blue-700 hover:bg-blue-50">Sinkronkan Ulang Jenis Produk</button>
                 </form>

@@ -15,6 +15,8 @@
                 class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 src="{{ $image ?? 'https://images.unsplash.com/photo-1606914501449-5a96b6ce24ca?auto=format&fit=crop&w=900&q=80' }}"
                 alt="{{ $name }}"
+                loading="lazy"
+                decoding="async"
             >
             <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-ink/40 to-transparent"></div>
             <div class="absolute left-3 top-3">
